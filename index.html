@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Scoping Document</title>
-<meta name="description" content="Prototype of the DXR Cyber scoping document as a dynamic Salesforce screen flow on the Opportunity record page.">
+<title>Scoping Request</title>
+<meta name="description" content="The DXR Cyber scoping request end to end: rep requests it, the client completes it, the signed-off document lands in Files on the Opportunity.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 <style>
 :root{
@@ -323,31 +323,149 @@ pre.model{
   max-width:1320px; margin:0 auto; padding:0 16px 28px; font-size:11.5px; color:var(--text-weaker);
   line-height:1.6;
 }
+
+/* ---------- mode switcher ---------- */
+.modes{display:flex; gap:4px; align-items:center}
+.modes button{
+  background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.26);
+  border-radius:var(--radius); padding:3px 11px; font-size:11.5px; cursor:pointer;
+}
+.modes button.on{background:#fff; color:var(--navy); border-color:#fff; font-weight:700}
+.modes button[disabled]{opacity:.4; cursor:not-allowed}
+
+/* ---------- stage tracker ---------- */
+.track{display:flex; gap:0; margin:0 0 14px; overflow-x:auto; scrollbar-width:none}
+.track::-webkit-scrollbar{display:none}
+.track li{
+  list-style:none; flex:1 1 0; min-width:104px; position:relative; text-align:center;
+  padding:7px 6px; font-size:11.5px; background:var(--surface-2);
+  border:1px solid var(--border-soft); border-right:none; color:var(--text-weak); white-space:nowrap;
+}
+.track li:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.track li:last-child{border-right:1px solid var(--border-soft); border-radius:0 var(--radius) var(--radius) 0}
+.track li.done{background:var(--brand); border-color:var(--brand); color:#fff}
+.track li.now{background:var(--navy); border-color:var(--navy); color:#fff; font-weight:700}
+
+/* ---------- product picker ---------- */
+.prod{border:1px solid var(--border-soft); border-radius:var(--radius); overflow:hidden}
+.prod-row{
+  display:flex; gap:10px; align-items:flex-start; padding:9px 11px;
+  border-bottom:1px solid var(--border-soft); cursor:pointer;
+}
+.prod-row:last-child{border-bottom:none}
+.prod-row:hover{background:var(--surface-2)}
+.prod-row.on{background:var(--brand-light)}
+.prod-row input{margin:2px 0 0; width:14px; height:14px; accent-color:var(--brand); flex:0 0 auto}
+.prod-row > span{min-width:0}
+.prod-row .nm{display:block; font-size:13px; font-weight:600; line-height:1.35}
+.prod-row .meta{display:block; font-size:11px; color:var(--text-weaker); margin-top:2px; font-family:var(--mono); word-break:break-word}
+.prod-row .right{margin-left:auto; text-align:right; flex:0 0 auto}
+.tag{
+  display:inline-block; font-size:10.5px; letter-spacing:.3px; border-radius:999px;
+  padding:1px 8px; border:1px solid var(--border-soft); color:var(--text-weaker);
+}
+.tag.live{border-color:var(--success); color:var(--success)}
+.tag.none{opacity:.75}
+
+/* ---------- email preview ---------- */
+.mail{
+  border:1px solid var(--border); border-radius:var(--radius); background:var(--surface-2);
+  overflow:hidden; margin-top:4px;
+}
+.mail-h{padding:10px 13px; border-bottom:1px solid var(--border-soft); font-size:12px; background:var(--surface)}
+.mail-h div{display:flex; gap:8px; padding:1px 0}
+.mail-h span.l{color:var(--text-weaker); width:48px; flex:0 0 auto}
+.mail-b{padding:14px 16px; font-size:13px; line-height:1.65; color:var(--text-weak); background:var(--surface)}
+.mail-b p{margin:0 0 11px}
+.mail-cta{
+  display:inline-block; background:var(--brand); color:#fff; font-weight:600; font-size:13px;
+  padding:9px 20px; border-radius:var(--radius); text-decoration:none; margin:4px 0 10px;
+}
+.mail-link{font-family:var(--mono); font-size:11px; color:var(--text-weaker); word-break:break-all}
+
+/* ---------- client (Experience Cloud) chrome ---------- */
+body.client{background:#0D1B2A}
+:root[data-theme="light"] body.client, body.client.lightbg{background:#EDF1F5}
+.cl-bar{
+  background:#0A1628; color:#fff; padding:0 20px; height:58px; display:flex; align-items:center; gap:12px;
+  border-bottom:3px solid #C8102E;
+}
+.cl-logo{font-size:17px; font-weight:800; letter-spacing:-.3px}
+.cl-logo em{font-style:normal; color:#FF4D6A}
+.cl-bar .who{margin-left:auto; font-size:12px; color:rgba(255,255,255,.7)}
+.cl-wrap{max-width:840px; margin:0 auto; padding:22px 16px 70px}
+.cl-card{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:6px;
+  box-shadow:var(--shadow); padding:22px; margin-bottom:14px;
+}
+.cl-card h1{font-size:21px; margin:0 0 6px; letter-spacing:-.3px}
+.cl-card .lead{font-size:13.5px; color:var(--text-weak); line-height:1.6; margin:0 0 4px}
+.cl-meta{display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid var(--border-soft)}
+.cl-prog{height:5px; background:var(--border-soft); border-radius:999px; overflow:hidden; margin-top:12px}
+.cl-prog i{display:block; height:100%; background:var(--brand); border-radius:999px; transition:width .25s}
+
+/* ---------- generated document ---------- */
+.doc{
+  background:#fff; color:#15181C; border:1px solid var(--border); border-radius:var(--radius);
+  padding:30px 34px; font-size:12.5px; line-height:1.6; max-width:760px; margin:0 auto;
+}
+.doc h1{font-size:19px; margin:0 0 3px; letter-spacing:-.2px; color:#0A1628}
+.doc .docsub{font-size:11.5px; color:#5C5C5C; margin-bottom:18px}
+.doc h2{
+  font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:#5C5C5C;
+  border-bottom:1px solid #DDD; padding-bottom:4px; margin:20px 0 9px;
+}
+.doc table{width:100%; border-collapse:collapse; font-size:12px}
+.doc td{padding:4px 8px 4px 0; border-bottom:1px solid #EEE; vertical-align:top; color:#15181C}
+.doc td.q{color:#5C5C5C; width:56%}
+.doc td.a{font-weight:600}
+.doc .sig{margin-top:22px; padding-top:12px; border-top:1px solid #DDD; font-size:11px; color:#5C5C5C}
+.doc .rule{border-top:3px solid #C8102E; width:54px; margin-bottom:14px}
+
+/* ---------- lightbox ---------- */
+.lb{
+  position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:60; display:grid; place-items:start center;
+  padding:28px 16px; overflow-y:auto; opacity:0; pointer-events:none; transition:opacity .16s;
+}
+.lb.on{opacity:1; pointer-events:auto}
+.lb-inner{width:100%; max-width:800px}
+.lb-bar{display:flex; gap:8px; align-items:center; margin-bottom:10px}
+.lb-bar .nm{color:#fff; font-size:13px; font-weight:600; font-family:var(--mono)}
+.lb-bar .sp{margin-left:auto}
+
+.empty{
+  text-align:center; padding:30px 18px; color:var(--text-weaker); font-size:13px; line-height:1.6;
+}
+.empty .big{font-size:30px; display:block; margin-bottom:8px; opacity:.6}
 </style>
 </head>
 <body>
-
 <div class="ribbon">
-  <div><b>Prototype</b> &nbsp;·&nbsp; a clickable mock of how the DXR Cyber scoping document would behave as a Salesforce screen flow. Not a Salesforce org. Scoping captures scope only — pricing stays manual.</div>
+  <div><b>Prototype</b> &nbsp;·&nbsp; the DXR Cyber scoping request, end to end, as it would run in Salesforce. Not a real org. Products are real catalogue SKUs; the question set is a placeholder.</div>
   <div class="r-actions">
+    <span class="modes">
+      <button type="button" data-mode="rep" class="on">Rep · Salesforce</button>
+      <button type="button" data-mode="client" id="modeClient">Client · what they receive</button>
+    </span>
     <button id="themeBtn" type="button">Dark</button>
-    <button id="resetBtn" type="button">Reset demo</button>
+    <button id="resetBtn" type="button">Reset</button>
   </div>
 </div>
 
+<!-- ======================= REP VIEW ======================= -->
+<div id="repView">
 <header class="appbar">
   <div class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <div class="appname">DXR Cyber Sales</div>
   <nav class="appnav">
     <span>Home</span><span>Accounts</span><span class="on">Opportunities</span>
-    <span>Scoping Documents</span><span>Quotes</span><span>Reports</span><span>Dashboards</span>
+    <span>Scoping Documents</span><span>Products</span><span>Reports</span>
   </nav>
   <div class="spacer"></div>
   <div class="avatar">SH</div>
 </header>
 
 <div class="wrap">
-
   <section class="rec-head">
     <div class="crumb">Opportunity</div>
     <div class="rec-title">
@@ -355,137 +473,57 @@ pre.model{
       <h1>Northvale Manufacturing — ITHC Year 3</h1>
       <span class="pill info">DXR-20418</span>
     </div>
-
     <ul class="path">
-      <li class="done">Qualification</li>
-      <li class="done">Discovery</li>
-      <li class="now">Scoping</li>
-      <li>Proposal</li>
-      <li>Negotiation</li>
-      <li>Closed Won</li>
+      <li class="done">Qualification</li><li class="done">Discovery</li><li class="now">Scoping</li>
+      <li>Proposal</li><li>Negotiation</li><li>Closed Won</li>
     </ul>
-
     <div class="rec-fields">
       <div><div class="rf-label">Account</div><div class="rf-value">Northvale Manufacturing Ltd</div></div>
-      <div><div class="rf-label">Amount</div><div class="rf-value" id="hdrAmount">Not yet priced</div></div>
+      <div><div class="rf-label">Primary Contact</div><div class="rf-value">Daniel Reeve</div></div>
       <div><div class="rf-label">Close Date</div><div class="rf-value">28/11/2026</div></div>
       <div><div class="rf-label">Owner</div><div class="rf-value">Sarah Hughes</div></div>
-      <div><div class="rf-label">Business Unit</div><div class="rf-value">DXR Cyber</div></div>
+      <div><div class="rf-label">Scoping Status</div><div class="rf-value" id="hdrStatus">Not Started</div></div>
     </div>
   </section>
 
   <nav class="tabs">
-    <button type="button" data-tab="details">Details</button>
-    <button type="button" data-tab="scoping" class="on">Scoping Document</button>
-    <button type="button" data-tab="related">Related</button>
+    <button type="button" data-tab="scoping" class="on">Scoping</button>
+    <button type="button" data-tab="products">Products</button>
+    <button type="button" data-tab="files">Files</button>
   </nav>
 
-  <!-- ============ DETAILS TAB ============ -->
-  <section id="tab-details" class="hidden">
-    <div class="card"><div class="card-head"><h2>Opportunity Details</h2></div>
-      <div class="card-body">
-        <div class="kv">
-          <div><div class="rf-label">Opportunity Name</div><div class="rf-value">Northvale Manufacturing — ITHC Year 3</div></div>
-          <div><div class="rf-label">Type</div><div class="rf-value">Existing Business — Renewal</div></div>
-          <div><div class="rf-label">Lead Source</div><div class="rf-value">Existing Customer</div></div>
-          <div><div class="rf-label">Primary Contact</div><div class="rf-value">Daniel Reeve, Head of IT</div></div>
-          <div><div class="rf-label">Scoping Status</div><div class="rf-value" id="detStatus">Not Started</div></div>
-          <div><div class="rf-label">Answers Captured</div><div class="rf-value" id="detDays">—</div></div>
-        </div>
-        <div class="notice info">
-          <span>ℹ️</span>
-          <div>Scoping status and completeness are stamped on the Opportunity by the flow. Amount is not —
-          the team prices the engagement manually once the scope has been technically reviewed, and
-          nothing in this process asserts a number.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ RELATED TAB ============ -->
-  <section id="tab-related" class="hidden">
-    <div class="card"><div class="card-head"><h2>Scoping Documents</h2><div class="sub" id="relCount">0 items</div></div>
-      <div class="card-body scroll-x"><div id="relList"></div></div>
-    </div>
-  </section>
-
-  <!-- ============ SCOPING TAB ============ -->
-  <section id="tab-scoping">
-    <div class="cols">
-      <div>
-        <div class="card flow-frame">
-          <span class="flow-tag">Flow · Scoping_Document_Capture</span>
-
-          <div id="flowLive">
-            <div class="steps" id="steps"></div>
-            <div class="card-body">
-              <div id="screen"></div>
-            </div>
-            <div class="flow-foot">
-              <button class="btn" id="prevBtn" type="button">Previous</button>
-              <button class="btn primary" id="nextBtn" type="button">Next</button>
-              <div class="spacer"></div>
-              <span class="note" id="autosave">Draft saved automatically</span>
-            </div>
-          </div>
-
-          <div id="flowDone" class="hidden">
-            <div class="card-body" id="doneBody"></div>
-          </div>
-        </div>
-      </div>
-
-      <aside class="panel">
-        <div class="card">
-          <div class="card-head"><h2>Scope Summary</h2><div class="sub">live</div></div>
-          <div class="card-body" id="effort"></div>
-        </div>
-      </aside>
-    </div>
-  </section>
-
+  <section id="tab-products"><div id="productsPane"></div></section>
+  <section id="tab-files" class="hidden"><div id="filesPane"></div></section>
+  <section id="tab-scoping" class="hidden"><div id="scopingPane"></div></section>
+</div>
+<div class="footer" id="footerNote"></div>
 </div>
 
-<div class="footer" id="footerNote"></div>
+<!-- ======================= CLIENT VIEW ======================= -->
+<div id="clientView" class="hidden">
+  <header class="cl-bar">
+    <div class="cl-logo">DXR<em>Cyber</em></div>
+    <div class="who" id="clWho"></div>
+  </header>
+  <div class="cl-wrap" id="clientPane"></div>
+</div>
 
 <button class="fab" id="buildBtn" type="button">How this is built ↗</button>
 <div class="drawer-bg" id="drawerBg"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
-  <div class="drawer-head">
-    <h2>How this is built in Salesforce</h2>
+  <div class="drawer-head"><h2>How this is built in Salesforce</h2>
     <div style="margin-left:auto"><button class="btn" id="drawerClose" type="button">Close</button></div>
   </div>
   <div class="drawer-body" id="drawerBody"></div>
 </aside>
 
+<div class="lb" id="lb"><div class="lb-inner">
+  <div class="lb-bar"><span class="nm" id="lbName"></span><span class="sp"></span>
+    <button class="btn" id="lbClose" type="button">Close</button></div>
+  <div id="lbBody"></div>
+</div></div>
+
 <script>
-/* ============================================================
-   Config — illustrative commercial assumptions
-   ============================================================ */
-/* No pricing lives here. Scoping captures the scope; the team prices it
-   manually from the summary this produces. */
-
-/* ============================================================
-   Services
-   ============================================================ */
-const SERVICES = [
-  {id:'EXT',  ico:'🌐', nm:'External Infrastructure',   bl:'Internet-facing estate, perimeter services.', kind:'project'},
-  {id:'INT',  ico:'🏢', nm:'Internal Infrastructure',   bl:'Internal network, AD, host build review.',    kind:'project'},
-  {id:'WEB',  ico:'🕸️', nm:'Web Application',           bl:'Authenticated and unauthenticated app test.', kind:'project'},
-  {id:'MOB',  ico:'📱', nm:'Mobile Application',        bl:'iOS / Android client and backing API.',       kind:'project'},
-  {id:'CLD',  ico:'☁️', nm:'Cloud Security Review',     bl:'Configuration review against CIS benchmarks.',kind:'project'},
-  {id:'SOC',  ico:'🎣', nm:'Social Engineering',        bl:'Phishing, vishing, physical, pretexting.',    kind:'project'},
-  {id:'CMP',  ico:'📋', nm:'Compliance & Certification',bl:'CE, CE+, ISO 27001, PCI DSS, DSPT, ITHC.',    kind:'project'},
-  {id:'ATDR', ico:'🛡️', nm:'ATDR (Managed Detection)',  bl:'24/7 monitoring and response. Recurring.',    kind:'recurring'}
-];
-const svc = id => SERVICES.find(s=>s.id===id);
-const has = id => (A.services||[]).includes(id);
-
-/* ============================================================
-   Question bank — this is the Scoping_Question__mdt analogue.
-   Every entry carries its own visibility rule, so adding a
-   question is a data change, not a flow change.
-   ============================================================ */
 const Q = [
   /* --- External infrastructure --- */
   {k:'ext_ips', head:true, s:'EXT', l:'Live IP addresses in scope', t:'number', req:true, min:1,
@@ -573,624 +611,701 @@ const Q = [
   {k:'log_prior', s:'LOG', l:'Previous DXR report available for reference', t:'check'},
   {k:'log_notes', s:'LOG', l:'Anything else the test team must know', t:'area', wide:true}
 ];
-const qByKey = k => Q.find(q=>q.k===k);
-
-/* a question is live when its service is selected AND its own rule passes */
-function qLive(q, a){
-  if (q.s !== 'LOG' && !(a.services||[]).includes(q.s)) return false;
-  if (q.s === 'LOG' && !(a.services||[]).length) return false;
-  return q.vis ? !!q.vis(a) : true;
-}
-
 /* ============================================================
-   Scope summary — completeness, not calculation
+   Products — real SKUs from the DXR Cyber catalogue.
+   `profile` is the scoping question set the SKU maps to.
+   Service line is deliberately NOT the key: "Penetration Testing"
+   alone covers 26 SKUs across web, infra, wireless, mobile and IoT.
    ============================================================ */
-function blank(q, v){
-  if (q.t === 'check') return false;               // an unticked box is an answer
-  if (q.t === 'multi') return !(v && v.length);
-  return v === undefined || v === null || v === '';
-}
-function serviceReady(s, a){
-  return !Q.filter(q=>q.s===s && qLive(q,a)).some(missing);
-}
-function summarise(a){
-  const sel  = a.services || [];
-  const live = Q.filter(q=>qLive(q,a));
+const PROFILES = {
+  EXT:'External Infrastructure', INT:'Internal Infrastructure', WEB:'Web Application',
+  MOB:'Mobile Application', CLD:'Cloud Security Review', SOC:'Social Engineering',
+  CMP:'Compliance & Certification', ATDR:'Managed Detection & Response'
+};
+const PRODUCTS = [
+  {sku:'PT-INF-EXT-001',     nm:'Penetration Testing - Infrastructure-External', line:'Penetration Testing', profile:'EXT'},
+  {sku:'PT-INF-INT-001',     nm:'Penetration Testing - Infrastructure-Internal', line:'Penetration Testing', profile:'INT'},
+  {sku:'PT-WEB-001',         nm:'Penetration Testing - Web Application',         line:'Penetration Testing', profile:'WEB'},
+  {sku:'PT-MOB-IOS-001',     nm:'Penetration Testing - Mobile iOS Application',  line:'Penetration Testing', profile:'MOB'},
+  {sku:'PT-MOB-ANDROID-001', nm:'Penetration Testing - Mobile Android Application', line:'Penetration Testing', profile:'MOB'},
+  {sku:'PT-ITHC-INF-001',    nm:'Penetration Testing - CHECK ITHC Infra',        line:'IT Health Check (ITHC)', profile:'EXT'},
+  {sku:'PT-ITHC-WEB-001',    nm:'Penetration Testing - CHECK ITHC Web',          line:'IT Health Check (ITHC)', profile:'WEB'},
+  {sku:'PT-SOCIAL ENG-011',  nm:'Social Engineering – Phishing',                 line:'Social Engineering', profile:'SOC'},
+  {sku:'SEC REV-CLOUD-002',  nm:'Security Review - Cloud Environment M365',      line:'Security Review', profile:'CLD'},
+  {sku:'VA-MGD-EXT-001',     nm:'Vulnerability Scanning - Managed External Infrastructure', line:'Vulnerability Management', profile:'EXT'},
+  {sku:'GRC-CE-P-003',       nm:'Cyber Essentials Plus Medium',                  line:'Cyber Essentials', profile:'CMP'},
+  {sku:'SOC-MSSP-24X7-90-1TB', nm:'SOC MSSP-24/7-90-1TB',                        line:'Managed Threat Detection & Response', profile:'ATDR'},
+  {sku:'PT-RETEST-001',      nm:'Penetration Testing - Retest',                  line:'Penetration Testing', profile:null},
+  {sku:'PT-RPT-001',         nm:'Penetration Testing - Analysis and Reporting',  line:'Penetration Testing', profile:null}
+];
+const prod = sku => PRODUCTS.find(p=>p.sku===sku);
 
-  const sections = sel.map(id=>({
-    id, nm: svc(id).nm,
-    outstanding: Q.filter(q=>q.s===id && qLive(q,a) && missing(q)).length
-  }));
-  const logLive = sel.length ? Q.filter(q=>q.s==='LOG' && qLive(q,a)) : [];
-  const logOut  = logLive.filter(missing).length;
+/* products already on the Opportunity as line items */
+const OPP_LINES = [
+  {sku:'PT-ITHC-INF-001', qty:1}, {sku:'PT-ITHC-WEB-001', qty:1}, {sku:'PT-RPT-001', qty:1}
+];
 
-  const heads = Q.filter(q=>q.head && qLive(q,a) && !blank(q, a[q.k]))
-                 .map(q=>({l:q.l, v:fmtVal(q, a[q.k])}));
+const CONTACTS = [
+  {id:'c1', nm:'Daniel Reeve',  title:'Head of IT',            email:'d.reeve@northvale-mfg.co.uk',  primary:true},
+  {id:'c2', nm:'Priya Anand',   title:'Infrastructure Manager',email:'p.anand@northvale-mfg.co.uk',  primary:false},
+  {id:'c3', nm:'Mark Ellison',  title:'Finance Director',      email:'m.ellison@northvale-mfg.co.uk',primary:false}
+];
 
-  return {
-    services: sel, sections, logLive, logOut, heads,
-    answered: live.filter(q=>!blank(q, a[q.k])).length,
-    total: live.length,
-    outstanding: live.filter(missing).length,
-    ready: sel.length > 0 && !live.some(missing)
-  };
-}
+const STAGES = [
+  {id:'requested', nm:'Requested'}, {id:'sent', nm:'Sent'}, {id:'in_progress', nm:'In Progress'},
+  {id:'received', nm:'Received'},   {id:'closed', nm:'Closed'}
+];
 
 /* ============================================================
    State
    ============================================================ */
-const STEPS = [
-  {id:'services', nm:'Services in Scope'},
-  {id:'tech',     nm:'Technical Scope'},
-  {id:'log',      nm:'Delivery & Constraints'},
-  {id:'review',   nm:'Review & Submit'}
-];
-let A = {};            // answers
-let step = 0;
-let submitted = null;  // submitted record snapshot
-let touched = false;   // show validation errors only after a Next attempt
+const LSK = 'dxr-scoping-demo-v3';
+let S, mode = 'rep', wizard = 0, touched = false, clientOpened = false;
 
-const LSK = 'dxr-scoping-demo-v2';
-function save(){ try{ localStorage.setItem(LSK, JSON.stringify({A, step, submitted})); }catch(e){} }
+function fresh(){
+  const a = {};
+  for (const q of Q) if (q.d !== undefined) a[q.k] = q.d;
+  return {
+    stage:'none', products:[...OPP_LINES.map(l=>l.sku)], contact:'c1', note:'',
+    A:a, scopeName:null, sentAt:null, receivedAt:null, closedAt:null, doc:null
+  };
+}
+function save(){ try{ localStorage.setItem(LSK, JSON.stringify({S, mode, wizard, clientOpened})); }catch(e){} }
 function load(){
-  /* Restored state is untrusted: it may have been written by an older build
-     whose shape no longer matches. Validate it, and fall back to a clean
-     start rather than rendering a broken record. */
   try{
     const r = JSON.parse(localStorage.getItem(LSK) || 'null');
-    if (!r || typeof r.A !== 'object' || r.A === null) return;
-    const sub = r.submitted;
-    if (sub && !(sub.summary && Array.isArray(sub.responses))) return;
-    A = r.A;
-    step = Number.isInteger(r.step) && r.step >= 0 && r.step < STEPS.length ? r.step : 0;
-    submitted = sub || null;
-  }catch(e){
-    A = defaults(); step = 0; submitted = null;
-  }
+    if (!r || !r.S || typeof r.S.A !== 'object' || !Array.isArray(r.S.products)) return;
+    S = r.S; mode = r.mode === 'client' ? 'client' : 'rep';
+    wizard = Number.isInteger(r.wizard) ? r.wizard : 0;
+    clientOpened = !!r.clientOpened;
+  }catch(e){}
 }
-function defaults(){
-  const a = {services:[]};
-  for (const q of Q) if (q.d !== undefined) a[q.k] = q.d;
-  return a;
+
+const contact = () => CONTACTS.find(c=>c.id===S.contact) || CONTACTS[0];
+const chosen  = () => S.products.map(prod).filter(Boolean);
+const profiles= () => [...new Set(chosen().map(p=>p.profile).filter(Boolean))];
+const stageIx = () => STAGES.findIndex(x=>x.id===S.stage);
+
+/* ============================================================
+   Question visibility, reused from the question bank
+   ============================================================ */
+function qLive(q){
+  const p = profiles();
+  if (q.s !== 'LOG' && !p.includes(q.s)) return false;
+  if (q.s === 'LOG' && !p.length) return false;
+  return q.vis ? !!q.vis(S.A) : true;
 }
+const qByKey = k => Q.find(q=>q.k===k);
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function blank(q,v){
+  if (q.t === 'check') return false;
+  if (q.t === 'multi') return !(v && v.length);
+  return v === undefined || v === null || v === '';
+}
+function missing(q){ return !!q.req && blank(q, S.A[q.k]); }
+function fmtVal(q,v){
+  if (v === undefined || v === null || v === '') return '—';
+  if (q.t === 'check') return v ? 'Yes' : 'No';
+  if (q.t === 'multi') return (v||[]).join(', ') || '—';
+  if (q.t === 'date'){ const d=new Date(v); return isNaN(d)?String(v):d.toLocaleDateString('en-GB'); }
+  return String(v);
+}
+function liveQs(){ return Q.filter(qLive); }
+function outstanding(){ return liveQs().filter(missing); }
 
 /* ============================================================
    Field rendering
    ============================================================ */
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-function missing(q){
-  if (!q.req) return false;
-  const v = A[q.k];
-  if (q.t === 'multi') return !(v && v.length);
-  if (q.t === 'check') return false;
-  return v === undefined || v === null || v === '';
-}
-
 function fieldHTML(q){
-  const bad  = touched && missing(q);
-  const id   = 'f_' + q.k;
-  const v    = A[q.k];
+  const bad = touched && missing(q), id = 'f_'+q.k, v = S.A[q.k];
   const help = q.h ? `<div class="help">${esc(q.h)}</div>` : '';
   const err  = bad ? `<div class="err">Complete this field.</div>` : '';
   const lab  = `<label for="${id}">${esc(q.l)}${q.req?'<span class="req">*</span>':''}</label>`;
-  let inner  = '';
-
-  if (q.t === 'check'){
-    return `<div class="f ${q.wide?'wide':''}">
-      <label class="check" for="${id}">
-        <input type="checkbox" id="${id}" data-k="${q.k}" ${v?'checked':''}>
-        <span>${esc(q.l)}</span>
-      </label>${help}</div>`;
-  }
+  if (q.t === 'check')
+    return `<div class="f ${q.wide?'wide':''}"><label class="check" for="${id}">
+      <input type="checkbox" id="${id}" data-k="${q.k}" ${v?'checked':''}><span>${esc(q.l)}</span></label>${help}</div>`;
   if (q.t === 'multi'){
-    const chips = q.o.map(o=>{
-      const on = (v||[]).includes(o);
-      return `<span class="chip ${on?'on':''}" data-multi="${q.k}" data-val="${esc(o)}" role="button" tabindex="0">${esc(o)}</span>`;
-    }).join('');
+    const chips = q.o.map(o=>`<span class="chip ${(v||[]).includes(o)?'on':''}" data-multi="${q.k}" data-val="${esc(o)}" role="button" tabindex="0">${esc(o)}</span>`).join('');
     return `<div class="f ${q.wide?'wide':''} ${bad?'bad':''}">${lab}<div class="chips">${chips}</div>${help}${err}</div>`;
   }
-  if (q.t === 'pick'){
-    inner = `<select id="${id}" data-k="${q.k}">
-      <option value=""${v?'':' selected'}>--None--</option>
-      ${q.o.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}
-    </select>`;
-  } else if (q.t === 'area'){
-    inner = `<textarea id="${id}" data-k="${q.k}">${esc(v||'')}</textarea>`;
-  } else if (q.t === 'number'){
-    inner = `<input type="number" id="${id}" data-k="${q.k}" value="${v===undefined||v===null?'':esc(v)}"
-             ${q.min!==undefined?`min="${q.min}"`:''} ${q.max!==undefined?`max="${q.max}"`:''}>`;
-  } else if (q.t === 'date'){
-    inner = `<input type="date" id="${id}" data-k="${q.k}" value="${esc(v||'')}">`;
-  } else {
-    inner = `<input type="text" id="${id}" data-k="${q.k}" value="${esc(v||'')}">`;
-  }
+  let inner;
+  if (q.t === 'pick') inner = `<select id="${id}" data-k="${q.k}"><option value=""${v?'':' selected'}>--None--</option>${q.o.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  else if (q.t === 'area') inner = `<textarea id="${id}" data-k="${q.k}">${esc(v||'')}</textarea>`;
+  else if (q.t === 'number') inner = `<input type="number" id="${id}" data-k="${q.k}" value="${v===undefined||v===null?'':esc(v)}" ${q.min!==undefined?`min="${q.min}"`:''} ${q.max!==undefined?`max="${q.max}"`:''}>`;
+  else if (q.t === 'date') inner = `<input type="date" id="${id}" data-k="${q.k}" value="${esc(v||'')}">`;
+  else inner = `<input type="text" id="${id}" data-k="${q.k}" value="${esc(v||'')}">`;
   return `<div class="f ${q.wide?'wide':''} ${bad?'bad':''}">${lab}${inner}${help}${err}</div>`;
 }
-
 function sectionHTML(sid, title, badge){
-  const qs = Q.filter(q=>q.s===sid && qLive(q,A));
+  const qs = Q.filter(q=>q.s===sid && qLive(q));
   if (!qs.length) return '';
-  return `<div class="sec">
-    <div class="sec-title">${esc(title)}${badge?`<span class="badge">${esc(badge)}</span>`:''}</div>
-    <div class="grid">${qs.map(fieldHTML).join('')}</div>
-  </div>`;
+  return `<div class="sec"><div class="sec-title">${esc(title)}${badge?`<span class="badge">${esc(badge)}</span>`:''}</div>
+    <div class="grid">${qs.map(fieldHTML).join('')}</div></div>`;
 }
 
 /* ============================================================
-   Screens
+   Shared bits
    ============================================================ */
-function screenServices(){
-  const cards = SERVICES.map(s=>{
-    const on = has(s.id);
-    return `<div class="svc-card ${on?'on':''}" data-svc="${s.id}" role="button" tabindex="0">
-      <div class="ico">${s.ico}</div>
-      <div><div class="nm">${esc(s.nm)}</div><div class="bl">${esc(s.bl)}</div>
-      <span class="tagline">${s.kind==='recurring'?'Recurring':'Project'}</span></div>
-    </div>`;
+function trackHTML(){
+  const i = stageIx();
+  return `<ul class="track">${STAGES.map((s,n)=>
+    `<li class="${n<i?'done':''} ${n===i?'now':''}">${esc(s.nm)}</li>`).join('')}</ul>`;
+}
+const LINK = () => 'https://scoping.dxrcyber.com/s/' + (S.scopeName||'SCOPE-00142').toLowerCase() + '?t=8f3c…a91d';
+function responses(){
+  const out = [];
+  for (const p of profiles())
+    for (const q of Q.filter(x=>x.s===p && qLive(x))) out.push({key:q.k, section:PROFILES[p], label:q.l, value:fmtVal(q,S.A[q.k])});
+  for (const q of Q.filter(x=>x.s==='LOG' && qLive(x))){
+    if (blank(q,S.A[q.k]) || S.A[q.k] === false) continue;
+    out.push({key:q.k, section:'Delivery', label:q.l, value:fmtVal(q,S.A[q.k])});
+  }
+  return out;
+}
+
+/* ============================================================
+   REP — Products tab
+   ============================================================ */
+function paneProducts(){
+  const rows = OPP_LINES.map(l=>{
+    const p = prod(l.sku);
+    return `<tr><td class="k">${esc(p.sku)}</td><td>${esc(p.nm)}</td><td>${esc(p.line)}</td>
+      <td class="v">${l.qty}</td><td>${p.profile?`<span class="tag live">${esc(PROFILES[p.profile])}</span>`:`<span class="tag none">No scoping needed</span>`}</td></tr>`;
   }).join('');
-  const n = (A.services||[]).length;
-  return `<div class="sec">
-    <div class="sec-title">Which services are in scope?${n?`<span class="badge">${n} selected</span>`:''}</div>
-    <div class="svc">${cards}</div>
-    ${touched && !n ? '<div class="notice warn"><span>⚠️</span><div>Select at least one service to continue.</div></div>' : ''}
-    <div class="notice info"><span>ℹ️</span><div>Everything after this screen is driven by what you pick here.
-      Pick two services and only those two question sets appear — the rep never scrolls past questions that do not apply to them.</div></div>
-  </div>`;
-}
-
-function screenTech(){
-  const sel = (A.services||[]).filter(s=>s!=='ATDR');
-  let html = '';
-  for (const s of sel) html += sectionHTML(s, svc(s).nm, svc(s).ico);
-  if (has('ATDR')) html += sectionHTML('ATDR', 'ATDR — Managed Detection & Response', '🛡️');
-  if (!html) html = '<div class="notice warn"><span>⚠️</span><div>No services selected. Go back a step.</div></div>';
-  return html;
-}
-
-function screenLog(){
-  return sectionHTML('LOG', 'Delivery & Constraints', '🗓️');
-}
-
-function screenReview(){
-  const r = summarise(A);
-  const rows = [];
-  for (const s of (A.services||[])){
-    for (const q of Q.filter(x=>x.s===s && qLive(x,A))){
-      rows.push([svc(s).nm, q.l, fmtVal(q, A[q.k])]);
-    }
-  }
-  for (const q of Q.filter(x=>x.s==='LOG' && qLive(x,A))){
-    if (A[q.k] === undefined || A[q.k] === '' || A[q.k] === false) continue;
-    rows.push(['Delivery', q.l, fmtVal(q, A[q.k])]);
-  }
-  const gaps = Q.filter(q=>qLive(q,A) && missing(q));
-
-  return `<div class="sec">
-    <div class="sec-title">Review<span class="badge">${rows.length} answers</span></div>
-    ${gaps.length ? `<div class="notice warn"><span>⚠️</span><div><b>${gaps.length} required ${gaps.length===1?'answer is':'answers are'} missing:</b>
-      ${gaps.map(g=>esc(g.l)).join(' · ')}</div></div>`
-    : `<div class="notice ok"><span>✓</span><div>All required answers captured. Submitting locks the document and routes it for technical review.</div></div>`}
-    <div class="scroll-x" style="margin-top:12px">
-      <table class="rel">
-        <thead><tr><th>Service</th><th>Question</th><th>Answer</th></tr></thead>
-        <tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="v">${esc(r[2])}</td></tr>`).join('')}</tbody>
-      </table>
-    </div>
-    <div class="notice info" style="margin-top:12px"><span>ℹ️</span><div>Submitting locks the document
-      and raises it for technical review. No price is attached and none is calculated — the team prices
-      it from this scope once the numbers have been verified.</div></div>
-  </div>`;
-}
-
-function fmtVal(q, v){
-  if (v === undefined || v === null || v === '') return '—';
-  if (q.t === 'check') return v ? 'Yes' : 'No';
-  if (q.t === 'multi') return (v||[]).join(', ') || '—';
-  return String(v);
+  return `<div class="card"><div class="card-head"><h2>Products</h2><div class="sub">${OPP_LINES.length} items</div></div>
+    <div class="card-body scroll-x">
+      <table class="rel"><thead><tr><th>Product Code</th><th>Product</th><th>Service Line</th><th>Qty</th><th>Scoping Profile</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <div class="notice info"><span>ℹ️</span><div>Requesting scoping pre-selects whatever is already on the
+        Opportunity. The rep adds anything missing rather than re-keying the lot — and a SKU like
+        <code>PT-RPT-001</code> carries no scoping profile, so it asks the client nothing.</div></div>
+    </div></div>`;
 }
 
 /* ============================================================
-   Scope summary panel
+   REP — Files tab
    ============================================================ */
-function renderEffort(){
-  const el = document.getElementById('effort');
-  const r  = summarise(A);
+function paneFiles(){
+  const body = S.doc
+    ? `<table class="rel"><thead><tr><th>Title</th><th>Type</th><th>Size</th><th>Created</th><th></th></tr></thead>
+       <tbody><tr><td class="v">${esc(S.doc.name)}</td><td>PDF</td><td>${esc(S.doc.size)}</td>
+       <td>${esc(S.doc.when)}</td><td><button class="btn" id="openDoc" type="button">Preview</button></td></tr></tbody></table>
+       <div class="notice info"><span>ℹ️</span><div>A <code>ContentVersion</code> generated on close and linked to the
+         Opportunity. It is a frozen snapshot of what the client actually confirmed — the child records stay
+         queryable for reporting, the PDF is the record of what was agreed.</div></div>`
+    : `<div class="empty"><span class="big">📄</span>No files yet. The scoping document is generated and
+        filed here when the completed scope comes back.</div>`;
+  return `<div class="card"><div class="card-head"><h2>Files</h2><div class="sub">${S.doc?'1 item':'0 items'}</div></div>
+    <div class="card-body scroll-x">${body}</div></div>`;
+}
 
-  if (!r.services.length){
-    el.innerHTML = `<div class="eff-empty">Pick the services in scope and this builds a running
-      summary of what has been captured and what is still outstanding — the handover note
-      the pricing team receives.</div>`;
-    document.getElementById('detDays').textContent = '—';
-    return;
+/* ============================================================
+   REP — Scoping tab, by stage
+   ============================================================ */
+function paneScoping(){
+  if (S.stage === 'none')
+    return `<div class="card"><div class="card-head"><h2>Scoping</h2></div><div class="card-body">
+      <div class="empty"><span class="big">📋</span>No scoping requested for this Opportunity.</div>
+      <div style="text-align:center"><button class="btn primary" id="reqBtn" type="button">Request Scoping</button></div>
+    </div></div>`;
+
+  if (S.stage === 'draft') return paneWizard();
+
+  const c = contact();
+  let body = `${trackHTML()}
+    <div class="kv">
+      <div><div class="rf-label">Scoping Document</div><div class="rf-value">${esc(S.scopeName)}</div></div>
+      <div><div class="rf-label">Stage</div><div class="rf-value">${esc(STAGES[stageIx()].nm)}</div></div>
+      <div><div class="rf-label">Sent To</div><div class="rf-value">${esc(c.nm)} · ${esc(c.email)}</div></div>
+      <div><div class="rf-label">Sent</div><div class="rf-value">${esc(S.sentAt||'—')}</div></div>
+      <div><div class="rf-label">Received</div><div class="rf-value">${esc(S.receivedAt||'—')}</div></div>
+      <div><div class="rf-label">Products</div><div class="rf-value">${chosen().length}</div></div>
+    </div>`;
+
+  if (S.stage === 'sent' || S.stage === 'in_progress'){
+    const done = liveQs().length - outstanding().length;
+    body += `<div class="notice ${S.stage==='in_progress'?'warn':'info'}"><span>${S.stage==='in_progress'?'⏳':'📤'}</span><div>
+      ${S.stage==='in_progress'
+        ? `<b>Client has started.</b> ${done} of ${liveQs().length} answers in. Each screen saves as they go,
+           so the link resumes and the rep can see progress without chasing blind.`
+        : `<b>Sent and awaiting the client.</b> Nothing to do until it comes back — a scheduled flow chases
+           at day 3 and day 7, then raises a task.`}</div></div>
+      <div class="sec"><div class="sec-title">Email sent</div>${mailHTML()}</div>
+      <div class="flow-foot" style="margin:0 -14px -14px; border-radius:0">
+        <button class="btn" id="nudgeBtn" type="button">Send reminder</button>
+        <div class="spacer"></div>
+        <span class="note">Switch to <b>Client</b> above to fill it in as Daniel would.</span>
+      </div>`;
   }
 
-  let h = '';
-  for (const sec of r.sections){
-    h += `<div class="eff-row"><span>${esc(sec.nm)}</span><span class="v" ${sec.outstanding?'style="color:var(--warn);font-weight:600"':'style="color:var(--success)"'}>${
-      sec.outstanding ? sec.outstanding + ' open' : 'complete'}</span></div>`;
-  }
-  if (r.logLive.length){
-    h += `<div class="eff-row"><span>Delivery &amp; Constraints</span><span class="v" ${r.logOut?'style="color:var(--warn);font-weight:600"':'style="color:var(--success)"'}>${
-      r.logOut ? r.logOut + ' open' : 'complete'}</span></div>`;
-  }
-
-  h += `<div class="eff-sep"></div>
-    <div class="eff-row"><span>Answers captured</span><span class="v">${r.answered} of ${r.total}</span></div>`;
-
-  if (r.heads.length){
-    h += `<div class="eff-sep"></div>
-      <div class="eff-row" style="color:var(--text-weaker);font-size:11px;text-transform:uppercase;letter-spacing:.4px"><span>Key figures</span><span></span></div>`;
-    for (const x of r.heads)
-      h += `<div class="eff-row sub"><span>${esc(x.l)}</span><span class="v">${esc(x.v)}</span></div>`;
+  if (S.stage === 'received'){
+    const rows = responses().map(r=>`<tr><td class="k">${esc(r.key)}</td><td>${esc(r.section)}</td>
+      <td>${esc(r.label)}</td><td class="v">${esc(r.value)}</td></tr>`).join('');
+    body += `<div class="notice ok"><span>✓</span><div><b>Scope received.</b> ${responses().length} answers
+       captured as <code>Scoping_Response__c</code> records. Verify the figures, then generate the document and close.</div></div>
+      <div class="sec"><div class="sec-title">Scoping Responses<span class="badge">${responses().length} records</span></div>
+        <div class="scroll-x"><table class="rel"><thead><tr><th>Question Key</th><th>Section</th><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>${rows}</tbody></table></div></div>
+      <div class="flow-foot" style="margin:0 -14px -14px; border-radius:0">
+        <button class="btn primary" id="closeBtn" type="button">Generate document &amp; close scoping</button>
+        <div class="spacer"></div><span class="note">Writes a PDF to Files on the Opportunity.</span>
+      </div>`;
   }
 
-  h += r.ready
-     ? `<div class="notice ok"><span>✓</span><div>Scope complete. Submitting sends it for technical review — pricing is set by the team afterwards.</div></div>`
-     : `<div class="notice warn"><span>⚠️</span><div>${r.outstanding} required ${r.outstanding===1?'answer':'answers'} still outstanding.</div></div>`;
+  if (S.stage === 'closed'){
+    body += `<div class="notice ok"><span>🔒</span><div><b>Scoping closed ${esc(S.closedAt)}.</b>
+       The document is filed on the Opportunity and the record is locked. Pricing happens next, by hand,
+       from that document.</div></div>
+      <div class="flow-foot" style="margin:0 -14px -14px; border-radius:0">
+        <button class="btn" id="openDoc2" type="button">Open scoping document</button>
+        <button class="btn" id="rescopeBtn" type="button">Re-scope (new version)</button>
+        <div class="spacer"></div><span class="note">${esc(S.doc?S.doc.name:'')}</span>
+      </div>`;
+  }
 
-  h += `<div class="notice info"><span>ℹ️</span><div>No prices are calculated here, by design. Scoping
-     captures <i>what</i> is being tested; the team prices it from this summary.</div></div>`;
+  return `<div class="card"><div class="card-head"><h2>Scoping</h2><div class="sub">${esc(S.scopeName||'')}</div></div>
+    <div class="card-body">${body}</div></div>`;
+}
 
-  el.innerHTML = h;
-  document.getElementById('detDays').textContent = r.answered + ' of ' + r.total;
+function mailHTML(){
+  const c = contact();
+  return `<div class="mail">
+    <div class="mail-h">
+      <div><span class="l">To</span><span>${esc(c.nm)} &lt;${esc(c.email)}&gt;</span></div>
+      <div><span class="l">From</span><span>Sarah Hughes &lt;s.hughes@dxrcyber.com&gt;</span></div>
+      <div><span class="l">Subject</span><span>Scoping information for your upcoming DXR Cyber engagement</span></div>
+    </div>
+    <div class="mail-b">
+      <p>Hi ${esc(c.nm.split(' ')[0])},</p>
+      <p>Ahead of pricing the work we discussed, we need a few technical details about what is in scope.
+         It should take about ten minutes, and you can save and come back to it.</p>
+      <p>We have pre-selected the services below based on our conversation:</p>
+      <p>${chosen().filter(p=>p.profile).map(p=>'• '+esc(p.nm)).join('<br>')}</p>
+      <a class="mail-cta" href="#" onclick="return false">Complete the scoping form</a>
+      ${S.note ? `<p><i>${esc(S.note)}</i></p>` : ''}
+      <p class="mail-link">${esc(LINK())}</p>
+      <p>Sarah</p>
+    </div></div>`;
+}
+
+/* ============================================================
+   REP — Request Scoping wizard
+   ============================================================ */
+function paneWizard(){
+  const steps = ['Services in scope','Who it goes to','Review &amp; send'];
+  const nav = `<div class="steps">${steps.map((s,i)=>
+    `<button class="step ${i===wizard?'on':''} ${i<wizard?'ok':''}" data-wz="${i}" type="button">${i+1}. ${s}</button>`).join('')}</div>`;
+
+  let body = '';
+  if (wizard === 0){
+    const onOpp = new Set(OPP_LINES.map(l=>l.sku));
+    const rows = PRODUCTS.map(p=>{
+      const on = S.products.includes(p.sku);
+      return `<label class="prod-row ${on?'on':''}">
+        <input type="checkbox" data-prod="${esc(p.sku)}" ${on?'checked':''}>
+        <span><span class="nm">${esc(p.nm)}</span><span class="meta">${esc(p.sku)} · ${esc(p.line)}</span></span>
+        <span class="right">${onOpp.has(p.sku)?'<span class="tag live">On Opportunity</span> ':''}${
+          p.profile?`<span class="tag">${esc(PROFILES[p.profile])}</span>`:'<span class="tag none">No questions</span>'}</span>
+      </label>`;
+    }).join('');
+    const np = profiles().length;
+    body = `<div class="sec"><div class="sec-title">Services in scope${np?`<span class="badge">${np} question set${np===1?'':'s'}</span>`:''}</div>
+      <div class="prod">${rows}</div>
+      ${touched && !np ? '<div class="notice warn"><span>⚠️</span><div>Select at least one product that needs scoping.</div></div>' : ''}
+      <div class="notice info"><span>ℹ️</span><div>Products already on the Opportunity come pre-ticked. What the
+        client is asked is driven by each product's scoping profile — several SKUs share one, and some need none.</div></div></div>`;
+  }
+  if (wizard === 1){
+    body = `<div class="sec"><div class="sec-title">Who it goes to</div><div class="grid">
+      <div class="f"><label for="ct">Main contact<span class="req">*</span></label>
+        <select id="ct" data-contact>${CONTACTS.map(c=>`<option value="${c.id}" ${S.contact===c.id?'selected':''}>${esc(c.nm)} — ${esc(c.title)}${c.primary?' (Primary)':''}</option>`).join('')}</select>
+        <div class="help">Defaults to the Primary Contact on the Account.</div></div>
+      <div class="f"><label>Email</label><input type="text" value="${esc(contact().email)}" disabled></div>
+      <div class="f wide"><label for="nt">Add a note to the email</label>
+        <textarea id="nt" data-note placeholder="Optional — anything specific to flag to them.">${esc(S.note||'')}</textarea></div>
+    </div></div>`;
+  }
+  if (wizard === 2){
+    body = `<div class="sec"><div class="sec-title">Review &amp; send</div>
+      <div class="kv">
+        <div><div class="rf-label">Products</div><div class="rf-value">${chosen().length}</div></div>
+        <div><div class="rf-label">Question sets</div><div class="rf-value">${profiles().map(p=>PROFILES[p]).join(', ')||'—'}</div></div>
+        <div><div class="rf-label">Questions to ask</div><div class="rf-value">${liveQs().length}</div></div>
+        <div><div class="rf-label">Recipient</div><div class="rf-value">${esc(contact().nm)} · ${esc(contact().email)}</div></div>
+      </div>
+      <div class="notice info" style="margin-top:12px"><span>ℹ️</span><div>Sending creates the
+        <code>Scoping_Document__c</code> record, generates a single-use tokenised link, stamps the stage to
+        <b>Sent</b> and emails the contact.</div></div>
+      <div style="margin-top:14px">${mailHTML()}</div></div>`;
+  }
+
+  return `<div class="card flow-frame"><span class="flow-tag">Flow · Request_Scoping</span>
+    ${nav}<div class="card-body">${body}</div>
+    <div class="flow-foot">
+      <button class="btn" id="wzPrev" type="button" ${wizard===0?'disabled':''}>Previous</button>
+      <button class="btn primary" id="wzNext" type="button">${wizard===2?'Create &amp; send':'Next'}</button>
+      <div class="spacer"></div><button class="btn ghost" id="wzCancel" type="button">Cancel</button>
+    </div></div>`;
+}
+
+/* ============================================================
+   CLIENT — the Experience Cloud form
+   ============================================================ */
+function paneClient(){
+  const c = contact();
+  document.getElementById('clWho').textContent = S.stage==='none' ? '' : c.nm + ' · Northvale Manufacturing Ltd';
+
+  if (S.stage === 'none')
+    return `<div class="cl-card"><div class="empty"><span class="big">✉️</span>
+      Nothing has been sent yet. Request scoping from the rep view first.</div></div>`;
+
+  if (S.stage === 'received' || S.stage === 'closed')
+    return `<div class="cl-card"><h1>Thank you — scope received</h1>
+      <p class="lead">We have everything we need. Your DXR Cyber contact will be in touch with a proposal.
+      A copy of what you submitted has been sent to ${esc(c.email)}.</p>
+      <div class="cl-meta"><div><div class="rf-label">Reference</div><div class="rf-value">${esc(S.scopeName)}</div></div>
+        <div><div class="rf-label">Submitted</div><div class="rf-value">${esc(S.receivedAt)}</div></div>
+        <div><div class="rf-label">Answers</div><div class="rf-value">${responses().length}</div></div></div></div>`;
+
+  if (!clientOpened)
+    return `<div class="cl-card"><h1>In ${esc(c.nm.split(' ')[0])}'s inbox</h1>
+      <p class="lead">This is what the contact receives. Opening the link is what moves the stage to
+      <b>In Progress</b> back in Salesforce.</p></div>
+      <div class="cl-card" style="padding:0;overflow:hidden">${mailHTML()}</div>
+      <div style="text-align:center"><button class="btn primary" id="openForm" type="button">Open the scoping form</button></div>`;
+
+  const total = liveQs().length, done = total - outstanding().length;
+  let secs = '';
+  for (const p of profiles()) secs += sectionHTML(p, PROFILES[p]);
+  secs += sectionHTML('LOG', 'Delivery & constraints');
+  const gaps = outstanding();
+
+  return `<div class="cl-card">
+      <div class="rule"></div>
+      <h1>Scoping information</h1>
+      <p class="lead">So we can scope your engagement accurately, we need a few technical details.
+      Everything saves as you go — close the tab and come back to the same link whenever you like.</p>
+      <div class="cl-meta">
+        <div><div class="rf-label">Prepared for</div><div class="rf-value">Northvale Manufacturing Ltd</div></div>
+        <div><div class="rf-label">Reference</div><div class="rf-value">${esc(S.scopeName)}</div></div>
+        <div><div class="rf-label">Services</div><div class="rf-value">${profiles().map(p=>PROFILES[p]).join(', ')}</div></div>
+      </div>
+      <div class="cl-prog"><i style="width:${total?Math.round(done/total*100):0}%"></i></div>
+      <div class="help" style="margin-top:6px">${done} of ${total} answered</div>
+    </div>
+    <div class="cl-card">${secs}</div>
+    <div class="cl-card">
+      ${touched && gaps.length ? `<div class="notice warn"><span>⚠️</span><div><b>${gaps.length} still needed:</b>
+        ${gaps.map(g=>esc(g.l)).join(' · ')}</div></div>` : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn primary" id="clSubmit" type="button">Submit scope</button>
+        <span class="note" style="font-size:11.5px;color:var(--text-weaker)">Saved automatically. Nothing is priced here —
+        your DXR Cyber contact will come back to you with costs.</span>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   The generated document
+   ============================================================ */
+function docHTML(){
+  const c = contact(), rs = responses();
+  const groups = [...new Set(rs.map(r=>r.section))];
+  return `<div class="doc">
+    <div class="rule"></div>
+    <h1>Scoping Document</h1>
+    <div class="docsub">${esc(S.scopeName)} · Northvale Manufacturing Ltd · DXR-20418 · confirmed ${esc(S.receivedAt)}</div>
+
+    <h2>Engagement</h2>
+    <table><tbody>
+      <tr><td class="q">Client</td><td class="a">Northvale Manufacturing Ltd</td></tr>
+      <tr><td class="q">Opportunity</td><td class="a">Northvale Manufacturing — ITHC Year 3</td></tr>
+      <tr><td class="q">Confirmed by</td><td class="a">${esc(c.nm)}, ${esc(c.title)}</td></tr>
+      <tr><td class="q">DXR Cyber contact</td><td class="a">Sarah Hughes</td></tr>
+    </tbody></table>
+
+    <h2>Products in scope</h2>
+    <table><tbody>${chosen().map(p=>
+      `<tr><td class="q">${esc(p.sku)}</td><td class="a">${esc(p.nm)}</td></tr>`).join('')}</tbody></table>
+
+    ${groups.map(g=>`<h2>${esc(g)}</h2><table><tbody>${
+      rs.filter(r=>r.section===g).map(r=>`<tr><td class="q">${esc(r.label)}</td><td class="a">${esc(r.value)}</td></tr>`).join('')
+    }</tbody></table>`).join('')}
+
+    <div class="sig">Scope confirmed by the client on ${esc(S.receivedAt)}. This document records what was
+      agreed at the point of scoping. Any change to the figures above requires a re-scope before delivery.
+      <br><br>No pricing is contained in this document. Costs are issued separately.</div>
+  </div>`;
 }
 
 /* ============================================================
    Render
    ============================================================ */
-function renderSteps(){
-  const el = document.getElementById('steps');
-  el.innerHTML = STEPS.map((s,i)=>{
-    const done = i < step;
-    return `<button class="step ${i===step?'on':''} ${done?'ok':''}" data-step="${i}" type="button">${i+1}. ${esc(s.nm)}</button>`;
-  }).join('');
-}
-
 function render(){
-  if (submitted){
-    document.getElementById('flowLive').classList.add('hidden');
-    document.getElementById('flowDone').classList.remove('hidden');
-    document.getElementById('doneBody').innerHTML = submittedHTML();
+  document.getElementById('repView').classList.toggle('hidden', mode !== 'rep');
+  document.getElementById('clientView').classList.toggle('hidden', mode !== 'client');
+  document.body.classList.toggle('client', mode === 'client');
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on', b.dataset.mode===mode));
+  document.getElementById('modeClient').disabled = S.stage === 'none';
+
+  if (mode === 'rep'){
+    document.getElementById('productsPane').innerHTML = paneProducts();
+    document.getElementById('filesPane').innerHTML   = paneFiles();
+    document.getElementById('scopingPane').innerHTML = paneScoping();
+    const label = {none:'Not Started', draft:'Draft', sent:'Sent to Client',
+                   in_progress:'In Progress', received:'Received', closed:'Closed'}[S.stage];
+    document.getElementById('hdrStatus').textContent = label;
   } else {
-    document.getElementById('flowLive').classList.remove('hidden');
-    document.getElementById('flowDone').classList.add('hidden');
-    renderSteps();
-    const id = STEPS[step].id;
-    document.getElementById('screen').innerHTML =
-      id === 'services' ? screenServices() :
-      id === 'tech'     ? screenTech()     :
-      id === 'log'      ? screenLog()      : screenReview();
-    document.getElementById('prevBtn').disabled = step === 0;
-    document.getElementById('nextBtn').textContent = id === 'review' ? 'Submit for review' : 'Next';
+    document.getElementById('clientPane').innerHTML = paneClient();
   }
-  renderEffort();
-  renderRelated();
-  document.getElementById('detStatus').textContent =
-    submitted ? submitted.status : ((A.services||[]).length ? 'Draft' : 'Not Started');
   save();
 }
-
-/* ============================================================
-   Submitted record
-   ============================================================ */
-function submittedHTML(){
-  const r = submitted, c = r.summary;
-  const rows = r.responses.map(x=>`<tr>
-    <td class="k">${esc(x.key)}</td><td>${esc(x.section)}</td><td>${esc(x.label)}</td><td class="v">${esc(x.value)}</td>
-  </tr>`).join('');
-  return `
-  <div class="sec">
-    <div class="sec-title">Scoping Document<span class="badge">${esc(r.name)}</span></div>
-    <div class="notice warn"><span>🔒</span><div><b>Submitted and locked — pending technical review.</b>
-       The rep can no longer edit it. Once an engineer has verified the figures, it goes to the team
-       for pricing.</div></div>
-    <div class="kv" style="margin-top:14px">
-      <div><div class="rf-label">Status</div><div class="rf-value">${esc(r.status)}</div></div>
-      <div><div class="rf-label">Version</div><div class="rf-value">v${r.version}</div></div>
-      <div><div class="rf-label">Submitted By</div><div class="rf-value">Sarah Hughes</div></div>
-      <div><div class="rf-label">Submitted</div><div class="rf-value">${esc(r.when)}</div></div>
-      <div><div class="rf-label">Services</div><div class="rf-value">${esc(r.services)}</div></div>
-      <div><div class="rf-label">Answers Captured</div><div class="rf-value">${c.answered} of ${c.total}</div></div>
-      <div><div class="rf-label">Verified By</div><div class="rf-value">Awaiting engineer</div></div>
-      <div><div class="rf-label">Priced</div><div class="rf-value">Not yet — manual</div></div>
-      <div><div class="rf-label">Record Locked</div><div class="rf-value">Yes</div></div>
-    </div>
-  </div>
-
-  <div class="sec">
-    <div class="sec-title">Scoping Responses<span class="badge">${r.responses.length} records</span></div>
-    <div class="scroll-x">
-      <table class="rel">
-        <thead><tr><th>Question Key</th><th>Section</th><th>Question</th><th>Answer</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    <div class="notice info"><span>ℹ️</span><div>Each row is a <code>Scoping_Response__c</code> record. The nine fields
-      above are real fields on <code>Scoping_Document__c</code> — the ones you report on. Everything else stays in the child rows.</div></div>
-  </div>
-
-  <div class="flow-foot" style="margin:0 -14px -14px; border-radius:0">
-    <button class="btn" id="recallBtn" type="button">Recall &amp; edit</button>
-    <button class="btn" id="newVerBtn" type="button">New version</button>
-    <div class="spacer"></div>
-    <span class="note">Next step in the real build: raise the quote from this scope.</span>
-  </div>`;
-}
-
-function doSubmit(){
-  const r = summarise(A);
-  const responses = [];
-  for (const s of (A.services||[])){
-    for (const q of Q.filter(x=>x.s===s && qLive(x,A))) responses.push({key:q.k, section:svc(s).nm, label:q.l, value:fmtVal(q,A[q.k])});
-  }
-  for (const q of Q.filter(x=>x.s==='LOG' && qLive(x,A))){
-    if (A[q.k] === undefined || A[q.k] === '' || A[q.k] === false) continue;
-    responses.push({key:q.k, section:'Delivery', label:q.l, value:fmtVal(q,A[q.k])});
-  }
-  submitted = {
-    name: 'SCOPE-' + String(140 + Math.floor(Math.random()*59)).padStart(5,'0'),
-    status: 'Pending Technical Review',
-    version: (submitted ? submitted.version + 1 : 1),
-    when: new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
-    services: (A.services||[]).map(s=>svc(s).nm).join(', '),
-    responses, summary: r
-  };
+function rerenderKeepFocus(){
+  const act = document.activeElement, id = act && act.id, pos = act && act.selectionStart;
   render();
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function renderRelated(){
-  const el = document.getElementById('relList');
-  if (!el) return;
-  if (!submitted){
-    el.innerHTML = '<div class="eff-empty">No scoping documents yet. Complete the flow on the Scoping Document tab.</div>';
-    document.getElementById('relCount').textContent = '0 items';
-    return;
-  }
-  const c = submitted.summary;
-  el.innerHTML = `<table class="rel">
-    <thead><tr><th>Scoping Document</th><th>Status</th><th>Services</th><th>Answers</th><th>Priced</th></tr></thead>
-    <tbody><tr>
-      <td class="v">${esc(submitted.name)}</td><td>${esc(submitted.status)}</td>
-      <td>${esc(submitted.services)}</td><td class="v">${c.answered} of ${c.total}</td>
-      <td>Not yet — manual</td>
-    </tr></tbody></table>`;
-  document.getElementById('relCount').textContent = '1 item';
+  if (id){ const n = document.getElementById(id);
+    if (n){ n.focus(); try{ if (pos!=null && n.setSelectionRange) n.setSelectionRange(pos,pos); }catch(e){} } }
 }
 
 /* ============================================================
    Events
    ============================================================ */
-/* keys that some other question's visibility rule depends on — only
-   these force a re-render, so typing in an ordinary field does not
-   rebuild the screen underneath the cursor */
 const GATE_KEYS = new Set();
 for (const q of Q) if (q.visTxt) for (const o of Q) if (q.visTxt.includes(o.k)) GATE_KEYS.add(o.k);
 
-function readField(q, el){
-  if (q.t === 'check') return el.checked;
-  if (q.t === 'number') return el.value === '' ? '' : Number(el.value);
-  return el.value;
-}
 function onField(e){
-  const k = e.target.dataset.k; if (!k) return;
+  const t = e.target;
+  if (t.dataset.note !== undefined){ S.note = t.value; save(); return; }
+  if (t.dataset.contact !== undefined){ S.contact = t.value; rerenderKeepFocus(); return; }
+  const k = t.dataset.k; if (!k) return;
   const q = qByKey(k); if (!q) return;
-  A[k] = readField(q, e.target);
-  if (GATE_KEYS.has(k)) rerenderScreenKeepFocus();
-  renderEffort(); save();
+  S.A[k] = q.t === 'check' ? t.checked : q.t === 'number' ? (t.value === '' ? '' : Number(t.value)) : t.value;
+  if (S.stage === 'sent'){ S.stage = 'in_progress'; render(); return; }
+  if (GATE_KEYS.has(k)) rerenderKeepFocus(); else { save(); updateProgress(); }
+}
+function updateProgress(){
+  const bar = document.querySelector('.cl-prog i'); if (!bar) return;
+  const total = liveQs().length, done = total - outstanding().length;
+  bar.style.width = (total ? Math.round(done/total*100) : 0) + '%';
+  const h = bar.parentElement.nextElementSibling;
+  if (h) h.textContent = `${done} of ${total} answered`;
 }
 document.addEventListener('input', onField);
 document.addEventListener('change', onField);
 
-function rerenderScreenKeepFocus(){
-  if (submitted) return;
-  const act = document.activeElement;
-  const id  = act && act.id, pos = act && act.selectionStart;
-  const idp = STEPS[step].id;
-  document.getElementById('screen').innerHTML =
-    idp === 'services' ? screenServices() : idp === 'tech' ? screenTech() :
-    idp === 'log' ? screenLog() : screenReview();
-  if (id){
-    const n = document.getElementById(id);
-    if (n){ n.focus(); try{ if (pos!=null && n.setSelectionRange) n.setSelectionRange(pos,pos); }catch(e){} }
-  }
+function wizardCanLeave(){
+  if (wizard === 0) return profiles().length > 0;
+  return true;
 }
+const now = () => new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 
 document.addEventListener('click', e=>{
-  const card = e.target.closest('[data-svc]');
-  if (card){
-    const id = card.dataset.svc;
-    A.services = A.services || [];
-    A.services = has(id) ? A.services.filter(x=>x!==id) : [...A.services, id];
-    A.services.sort((a,b)=>SERVICES.findIndex(s=>s.id===a)-SERVICES.findIndex(s=>s.id===b));
-    render(); return;
-  }
-  const chip = e.target.closest('[data-multi]');
-  if (chip){
-    const k = chip.dataset.multi, v = chip.dataset.val;
-    const cur = A[k] || [];
-    A[k] = cur.includes(v) ? cur.filter(x=>x!==v) : [...cur, v];
-    rerenderScreenKeepFocus(); renderEffort(); save(); return;
-  }
-  const st = e.target.closest('[data-step]');
-  if (st){ const i = Number(st.dataset.step); if (i <= step || canLeave(step)) { step = i; touched=false; render(); } return; }
-  const tab = e.target.closest('[data-tab]');
+  const t = e.target;
+
+  const md = t.closest('[data-mode]');
+  if (md && !md.disabled){ mode = md.dataset.mode; touched = false; render(); window.scrollTo({top:0}); return; }
+
+  const tab = t.closest('[data-tab]');
   if (tab){
     document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on', b===tab));
-    for (const t of ['details','scoping','related'])
-      document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab.dataset.tab);
+    for (const n of ['scoping','products','files'])
+      document.getElementById('tab-'+n).classList.toggle('hidden', n !== tab.dataset.tab);
     return;
   }
-  if (e.target.id === 'recallBtn'){ submitted = null; step = STEPS.length-1; render(); return; }
-  if (e.target.id === 'newVerBtn'){ const v = submitted.version; submitted = null; step = 0; A._v = v+1; render(); return; }
-});
 
+  const pr = t.closest('[data-prod]');
+  if (pr){
+    const sku = pr.dataset.prod;
+    S.products = S.products.includes(sku) ? S.products.filter(x=>x!==sku) : [...S.products, sku];
+    render(); return;
+  }
+  const chip = t.closest('[data-multi]');
+  if (chip){
+    const k = chip.dataset.multi, v = chip.dataset.val, cur = S.A[k] || [];
+    S.A[k] = cur.includes(v) ? cur.filter(x=>x!==v) : [...cur, v];
+    if (S.stage === 'sent') S.stage = 'in_progress';
+    rerenderKeepFocus(); return;
+  }
+  const wz = t.closest('[data-wz]');
+  if (wz){ const i = Number(wz.dataset.wz); if (i <= wizard || wizardCanLeave()){ wizard = i; touched = false; render(); } return; }
+
+  switch (t.id){
+    case 'reqBtn':   S.stage = 'draft'; wizard = 0; touched = false; render(); break;
+    case 'wzCancel': S.stage = 'none'; wizard = 0; render(); break;
+    case 'wzPrev':   if (wizard > 0){ wizard--; touched = false; render(); } break;
+    case 'wzNext':
+      touched = true;
+      if (!wizardCanLeave()){ render(); break; }
+      if (wizard < 2){ wizard++; touched = false; render(); break; }
+      S.scopeName = 'SCOPE-' + String(140 + Math.floor(Math.random()*59)).padStart(5,'0');
+      S.stage = 'sent'; S.sentAt = now(); render();
+      break;
+    case 'nudgeBtn': alert('Reminder sent to ' + contact().email + '.\n\nIn the build this is a scheduled flow at day 3 and day 7, then a task to the owner.'); break;
+    case 'openForm': clientOpened = true; if (S.stage === 'sent') S.stage = 'in_progress'; render(); break;
+    case 'clSubmit':
+      touched = true;
+      if (outstanding().length){ render(); window.scrollTo({top:document.body.scrollHeight}); break; }
+      S.stage = 'received'; S.receivedAt = now(); render(); window.scrollTo({top:0}); break;
+    case 'closeBtn':
+      S.closedAt = now();
+      S.doc = {name:`Scoping Document - Northvale Manufacturing - ${S.scopeName} v1.pdf`,
+               size:(60 + responses().length * 2) + ' KB', when:S.closedAt};
+      S.stage = 'closed'; render();
+      document.querySelector('[data-tab="files"]').click();
+      window.scrollTo({top:0}); break;
+    case 'openDoc': case 'openDoc2': openLb(); break;
+    case 'rescopeBtn':
+      if (confirm('Start a new version? The closed document stays on the Opportunity.')){
+        S.stage='none'; S.scopeName=null; S.sentAt=S.receivedAt=null; clientOpened=false; wizard=0; render();
+      }
+      break;
+    case 'resetBtn': S = fresh(); mode='rep'; wizard=0; clientOpened=false; touched=false;
+      try{ localStorage.removeItem(LSK); }catch(e){} render(); break;
+  }
+});
 document.addEventListener('keydown', e=>{
-  if (e.key !== 'Enter' && e.key !== ' ') return;
-  const t = e.target.closest('[data-svc],[data-multi]');
-  if (t){ e.preventDefault(); t.click(); }
+  if (e.key === 'Escape'){ openDrawer(false); closeLb(); }
+  if ((e.key === 'Enter' || e.key === ' ')){
+    const t = e.target.closest('[data-multi]');
+    if (t){ e.preventDefault(); t.click(); }
+  }
 });
 
-function canLeave(i){
-  const id = STEPS[i].id;
-  if (id === 'services') return (A.services||[]).length > 0;
-  const liveQ = Q.filter(q=>qLive(q,A) && (id==='tech' ? q.s!=='LOG' : id==='log' ? q.s==='LOG' : true));
-  return !liveQ.some(missing);
-}
-
-document.getElementById('prevBtn').onclick = ()=>{ if (step>0){ step--; touched=false; render(); window.scrollTo({top:0,behavior:'smooth'}); } };
-document.getElementById('nextBtn').onclick = ()=>{
-  touched = true;
-  if (!canLeave(step)){ render(); return; }
-  if (STEPS[step].id === 'review'){ doSubmit(); return; }
-  step++; touched = false; render(); window.scrollTo({top:0,behavior:'smooth'});
-};
-
-document.getElementById('resetBtn').onclick = ()=>{
-  A = defaults(); step = 0; submitted = null; touched = false;
-  try{ localStorage.removeItem(LSK); }catch(e){}
-  render();
-};
+/* lightbox */
+function openLb(){ document.getElementById('lbName').textContent = S.doc.name;
+  document.getElementById('lbBody').innerHTML = docHTML();
+  document.getElementById('lb').classList.add('on'); }
+function closeLb(){ document.getElementById('lb').classList.remove('on'); }
+document.getElementById('lbClose').onclick = closeLb;
+document.getElementById('lb').addEventListener('click', e=>{ if (e.target.id === 'lb') closeLb(); });
 
 /* theme */
 const themeBtn = document.getElementById('themeBtn');
 function applyTheme(t){
-  if (t) document.documentElement.setAttribute('data-theme', t);
-  else document.documentElement.removeAttribute('data-theme');
+  if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme');
   const dark = t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches);
   themeBtn.textContent = dark ? 'Light' : 'Dark';
 }
 themeBtn.onclick = ()=>{
-  const dark = document.documentElement.getAttribute('data-theme') === 'dark'
-    || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+  const cur = document.documentElement.getAttribute('data-theme');
+  const dark = cur === 'dark' || (!cur && matchMedia('(prefers-color-scheme: dark)').matches);
   const next = dark ? 'light' : 'dark';
   try{ localStorage.setItem(LSK+'-theme', next); }catch(e){}
   applyTheme(next);
 };
 
 /* ============================================================
-   "How this is built" drawer — rule table generated from the
-   same config the form runs on
+   "How this is built" drawer
    ============================================================ */
 function drawerHTML(){
   const ruleRows = Q.map(q=>{
-    const vis = q.s === 'LOG'
-      ? (q.visTxt ? q.visTxt : 'any service selected')
-      : (q.visTxt ? `${q.s} selected AND ${q.visTxt}` : `${q.s} selected`);
-    const type = {number:'Number', pick:'Picklist', multi:'Multi-Select', check:'Checkbox',
-                  date:'Date', text:'Text', area:'Long Text'}[q.t];
+    const vis = q.s === 'LOG' ? (q.visTxt || 'any scoped product selected')
+              : (q.visTxt ? `${q.s} profile AND ${q.visTxt}` : `${q.s} profile selected`);
+    const type = {number:'Number',pick:'Picklist',multi:'Multi-Select',check:'Checkbox',date:'Date',text:'Text',area:'Long Text'}[q.t];
     return `<tr><td class="k">${esc(q.k)}</td><td>${esc(type)}</td><td>${esc(vis)}</td><td>${q.req?'Yes':'—'}</td></tr>`;
   }).join('');
 
   return `
-  <h3>What the team is looking at</h3>
-  <p>A clickable mock of the scoping document rebuilt as a Salesforce screen flow embedded on the
-     Opportunity. The branching and the completeness tracking are live — click through it and the
-     summary moves. What is <b>not</b> real: the question set. It is a credible DXR Cyber set written
-     from the service lines, not extracted from the live Zoho Form. That extraction is the next job,
-     and it replaces this config wholesale.</p>
-  <p><b>Scoping does not price anything.</b> It captures what is being tested, confirms nothing has
-     been missed, and hands the team a clean, structured summary. Pricing stays manual and stays
-     separate — so no estimate ever leaves the building because a form did arithmetic.</p>
+  <h3>The process</h3>
+  <p><b>Request Scoping</b> on the Opportunity → rep confirms services and recipient → record created and
+     a tokenised link emailed to the main contact → client completes it → stage tracks Sent, In Progress,
+     Received → a PDF is generated into Files on the Opportunity and the scoping is closed.
+     Pricing happens after that, by hand, and nothing in this process calculates a number.</p>
+
+  <h3>Service line is not granular enough to drive the questions</h3>
+  <p>This fell out of the real catalogue. <code>Penetration Testing</code> is one service line containing 26 SKUs —
+     web, internal infra, external infra, wireless, VPN, mobile iOS, mobile Android, IoT, PCI, OSINT,
+     password cracking, retest, reporting. Those need very different questions, and two of them need none at all.</p>
+  <p>So the question set keys off a <code>Scoping_Profile__c</code> picklist on <b>Product2</b>, not off Family.
+     Many SKUs collapse onto one profile — <code>PT-INF-EXT-001</code>, <code>PT-ITHC-INF-001</code> and
+     <code>VA-MGD-EXT-001</code> all ask the external-infrastructure questions. Blank profile means the product
+     asks nothing, which is right for <code>PT-RPT-001</code> and <code>PT-RETEST-001</code>.
+     Roughly 749 SKUs reduce to a handful of profiles.</p>
 
   <h3>Data model</h3>
   <pre class="model">Opportunity
+ ├── OpportunityLineItem          existing products — pre-select the scope
+ ├── ContentDocumentLink ─────────► the generated PDF, on close
  └── Scoping_Document__c          (master-detail)
-      ├─ Service_Lines__c          multi-select
-      ├─ Status__c                 Draft / Submitted / Approved / Superseded
-      ├─ Version__c                number
-      ├─ Answers_Captured__c       number      ← stamped by flow
-      ├─ Scope_Complete__c         formula     ← nothing outstanding
-      ├─ Verified_By__c            lookup(User)
-      ├─ Verified_Date__c          date
-      └── Scoping_Response__c      (master-detail, one per answer)
-           ├─ Question_Key__c      text        ← joins to the metadata below
-           ├─ Section__c           text
-           ├─ Answer_Text__c / Answer_Number__c / Answer_Checkbox__c
-           └─ Sequence__c          number
+      ├─ Stage__c                  Requested / Sent / In Progress / Received / Closed
+      ├─ Contact__c                lookup — who it went to
+      ├─ Access_Token__c           opaque GUID, single use
+      ├─ Token_Expires__c          date/time
+      ├─ Sent_Date__c · Received_Date__c · Closed_Date__c
+      ├─ Version__c                re-scopes supersede, never overwrite
+      ├── Scoping_Doc_Product__c   (one per product in scope)
+      │    └─ Product__c           lookup to Product2
+      └── Scoping_Response__c      (one per answer)
+           ├─ Question_Key__c · Section__c · Sequence__c
+           └─ Answer_Text__c / Answer_Number__c / Answer_Checkbox__c
 
-Scoping_Question__mdt              (the question bank — custom metadata)
- ├─ Service_Line__c · Question_Key__c · Data_Type__c
- ├─ Picklist_Values__c · Required__c · Help_Text__c
- ├─ Visible_If__c                  the rule, as data
- └─ Headline__c                    surfaces on the summary the team prices from</pre>
+Product2.Scoping_Profile__c        picklist — which question set this SKU triggers
+Scoping_Question__mdt              the question bank, keyed by profile
+ └─ Profile__c · Question_Key__c · Data_Type__c · Required__c · Visible_If__c</pre>
 
-  <h3>Why a child object and not 60 fields on Opportunity</h3>
-  <p>Across eight service lines the full question set runs past 60 questions, and any one deal uses a
-     fraction of them. As Opportunity fields that is a sparse, unreportable mess, and every new service
-     line means a deployment. As child records it stays clean — and the fifteen or so answers worth
-     reporting and resourcing on get promoted to real fields on <code>Scoping_Document__c</code>.
-     Wide where you report, tall where you capture.</p>
-  <p>Which ones get promoted changed when pricing came out of scope. It is no longer &ldquo;whatever drives
-     the fee&rdquo; — it is the volumetrics the team compares deals by and plans capacity from: IP counts,
-     application counts, endpoint counts, framework, delivery mode, dates. Those are the
-     <code>Headline__c</code> questions, and they are what the summary panel shows.</p>
+  <h3>The client-facing surface</h3>
+  <p>An Experience Cloud LWR site, public, no login. The constraint that shapes it: since Winter '21 guest
+     users have an org-wide default of Private that cannot be changed, and cannot be granted record access
+     through sharing rules. So the guest user gets no object permissions at all — an <code>@AuraEnabled</code>
+     Apex controller declared <code>without sharing</code> validates the token and only then touches that one
+     record. Every read and write goes through that gate.</p>
+  <p>Save on each screen, not just at submit. That is what makes the link resumable and makes
+     <b>In Progress</b> a real stage the rep can see rather than guess at.</p>
 
-  <h3>Why custom metadata for the questions</h3>
-  <p>DXR Cyber adds service lines. If the questions live inside the flow, every new question is a build,
-     a test cycle and a release. If they live in <code>Scoping_Question__mdt</code>, it is a metadata record
-     a RevOps admin creates in two minutes. This prototype is built that way on purpose — the whole form
-     renders from one config array, which is why the rule table below could be generated from it.</p>
+  <h3>Why a PDF as well as the records</h3>
+  <p>The child records are queryable — report on them, compare deals, plan capacity. The PDF is the frozen
+     record of what the client actually confirmed on the day, which is the thing you need when delivery finds
+     200 pages where the form said 45. Generate it with a Visualforce page rendered as PDF, insert as a
+     <code>ContentVersion</code>, link to the Opportunity with <code>ContentDocumentLink</code>. Native, no
+     third-party doc tool required — though PandaDoc would do it with better typography if the branding matters.</p>
+
+  <h3>Re-scoping</h3>
+  <p>Scope changes. The Zoho notes are full of &ldquo;RESCOPE&rdquo;, &ldquo;Additional Scoping&rdquo; and
+     &ldquo;SCOPE CREEP&rdquo;. A re-scope creates a new <code>Scoping_Document__c</code> version rather than
+     editing the closed one — the original PDF stays on the Opportunity, so what was originally agreed is
+     never quietly overwritten.</p>
 
   <h3>Rule table — generated from this prototype's own config</h3>
-  <p>This is the artifact that matters. One row per question, with the condition that makes it appear.
-     It maps one-to-one onto <code>Scoping_Question__mdt</code> rows, and it is reviewable by the people who
-     own the scoping process without them reading a design document.</p>
-  <div class="scroll-x">
-    <table class="rel">
-      <thead><tr><th>Question Key</th><th>Type</th><th>Visible when</th><th>Required</th></tr></thead>
-      <tbody>${ruleRows}</tbody>
-    </table>
-  </div>
+  <p>One row per question, with the condition that makes it appear. Maps one-to-one onto
+     <code>Scoping_Question__mdt</code> rows, and is reviewable by the people who own the scoping process
+     without them reading a design document.</p>
+  <div class="scroll-x"><table class="rel">
+    <thead><tr><th>Question Key</th><th>Type</th><th>Visible when</th><th>Required</th></tr></thead>
+    <tbody>${ruleRows}</tbody></table></div>
 
-  <h3>What still has to come out of Zoho</h3>
-  <p>Three things, and none of them are in the migration extract today:</p>
-  <p>1. <b>The real question set and its rules</b> — from the Zoho Form itself.<br>
-     2. <b>The server-side logic</b> — any Deluge that calculates days or price. The browser never sees it,
-        so it needs an admin export or a look at the builder.<br>
-     3. <b>Historical submissions</b> — every scoping form ever filled in. These live in Zoho Forms, not
-        Zoho CRM, so <code>staging.sqlite</code> does not contain them.</p>
-
-  <h3>What submitting actually does</h3>
-  <p>Locks the document, raises it for technical review, and notifies the owner. An engineer verifies the
-     figures the client or rep supplied — a stated &ldquo;45 dynamic pages&rdquo; that turns out to be 200 is the
-     expensive failure this step exists to catch. Once verified, the team prices it by hand from the
-     summary. The scoping record is the input to that conversation, not a substitute for it.</p>
-
-  <h3>Build estimate</h3>
-  <p>Internal, rep-facing, questions hard-coded in the flow: roughly a week, and every change after that is
-     a build. Metadata-driven with the custom LWC: closer to two weeks, after which the business maintains
-     its own question set. Adding a prospect-facing Experience Cloud surface later is additive rather than
-     a rewrite — provided the questions were never hard-coded. That one decision is what keeps the door open.</p>`;
+  <h3>Still outstanding from Zoho</h3>
+  <p>1. The real question set and its rules, from the Zoho Form itself.<br>
+     2. Server-side logic — any Deluge behind it. The browser never sees it.<br>
+     3. Historical submissions. They live in Zoho Forms, not Zoho CRM, so they are not in
+        <code>staging.sqlite</code> and did not come across in the migration extract.<br>
+     4. The SKU-to-profile mapping — a one-off pass over the catalogue with the test team.</p>`;
 }
-
 const drawer = document.getElementById('drawer'), drawerBg = document.getElementById('drawerBg');
 function openDrawer(on){
   drawer.classList.toggle('on', on); drawerBg.classList.toggle('on', on);
   drawer.setAttribute('aria-hidden', String(!on));
-  if (on && !drawer.dataset.filled){ document.getElementById('drawerBody').innerHTML = drawerHTML(); drawer.dataset.filled='1'; }
+  if (on && !drawer.dataset.filled){ document.getElementById('drawerBody').innerHTML = drawerHTML(); drawer.dataset.filled = '1'; }
 }
 document.getElementById('buildBtn').onclick = ()=>openDrawer(true);
 document.getElementById('drawerClose').onclick = ()=>openDrawer(false);
 drawerBg.onclick = ()=>openDrawer(false);
-document.addEventListener('keydown', e=>{ if (e.key === 'Escape') openDrawer(false); });
 
 /* ============================================================
    Init
    ============================================================ */
 document.getElementById('footerNote').innerHTML =
-  'Prototype built by SaaScend for DXR Cyber · placeholder question set, the live Zoho Form has not ' +
-  'yet been extracted · no pricing is calculated anywhere in this process, by design. Progress is kept ' +
-  'in this browser only — &ldquo;Reset demo&rdquo; clears it.';
+  'Prototype built by SaaScend for DXR Cyber · product codes are real catalogue SKUs; the question set is a ' +
+  'placeholder, the live Zoho Form has not yet been extracted · no pricing is calculated anywhere, by design. ' +
+  'Progress is kept in this browser only — &ldquo;Reset&rdquo; clears it.';
 
 (function init(){
   let t = null; try{ t = localStorage.getItem(LSK+'-theme'); }catch(e){}
   applyTheme(t);
-  A = defaults(); load();
-  if (!A.services) A.services = [];
+  S = fresh(); load();
   render();
+  document.querySelector('[data-tab="scoping"]').click();
 })();
+
 </script>
 </body>
 </html>
