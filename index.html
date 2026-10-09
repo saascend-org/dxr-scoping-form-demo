@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Scoping Document</title>
+<meta name="description" content="Prototype of the DXR Cyber scoping document as a dynamic Salesforce screen flow on the Opportunity record page.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<style>
+:root{
+  --brand:#0176D3; --brand-dark:#014486; --brand-light:#EEF4FF;
+  --navy:#032D60;
+  --bg:#F3F3F3; --surface:#FFFFFF; --surface-2:#FAFAFA;
+  --text:#181818; --text-weak:#5C5C5C; --text-weaker:#747474;
+  --border:#C9C9C9; --border-soft:#E5E5E5;
+  --success:#2E844A; --success-bg:#EBF7EE;
+  --warn:#8C4B02; --warn-bg:#FEF5E8;
+  --error:#EA001E; --error-bg:#FEDED8;
+  --radius:4px;
+  --shadow:0 2px 2px 0 rgba(0,0,0,.10);
+  --shadow-lg:0 2px 12px 0 rgba(0,0,0,.18);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:"Salesforce Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --bg:#15171A; --surface:#1D2024; --surface-2:#232629;
+    --text:#ECEDEE; --text-weak:#B4B8BD; --text-weaker:#9AA0A6;
+    --border:#3A3F45; --border-soft:#2C3035;
+    --brand-light:#132B45; --success-bg:#12291A; --warn-bg:#2E2008; --error-bg:#330F0C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171A; --surface:#1D2024; --surface-2:#232629;
+  --text:#ECEDEE; --text-weak:#B4B8BD; --text-weaker:#9AA0A6;
+  --border:#3A3F45; --border-soft:#2C3035;
+  --brand-light:#132B45; --success-bg:#12291A; --warn-bg:#2E2008; --error-bg:#330F0C;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--sans);
+  font-size:13px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+a{color:var(--brand)}
+
+/* ---------- demo ribbon ---------- */
+.ribbon{
+  background:var(--navy); color:#fff; font-size:11.5px; padding:6px 16px;
+  display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+}
+.ribbon b{font-weight:700}
+.ribbon .r-actions{display:flex; gap:8px; align-items:center}
+.ribbon button{
+  background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.3);
+  border-radius:var(--radius); padding:3px 10px; font-size:11.5px; cursor:pointer;
+}
+.ribbon button:hover{background:rgba(255,255,255,.26)}
+
+/* ---------- salesforce chrome ---------- */
+.appbar{
+  background:var(--navy); color:#fff; display:flex; align-items:center;
+  gap:14px; padding:0 16px; height:48px;
+}
+.waffle{
+  width:28px;height:28px;border-radius:var(--radius);background:rgba(255,255,255,.18);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:5px;flex:0 0 auto;
+}
+.waffle i{background:#fff;border-radius:1px;display:block}
+.appname{font-size:15px;font-weight:700;letter-spacing:-.1px;white-space:nowrap}
+.appnav{display:flex; gap:2px; margin-left:8px; overflow-x:auto; scrollbar-width:none}
+.appnav::-webkit-scrollbar{display:none}
+.appnav span{
+  padding:6px 10px; border-radius:var(--radius); font-size:12.5px; white-space:nowrap;
+  color:rgba(255,255,255,.85); cursor:default;
+}
+.appnav span.on{background:rgba(255,255,255,.18); color:#fff; font-weight:600}
+.appbar .spacer{margin-left:auto}
+.avatar{
+  width:26px;height:26px;border-radius:50%;background:#FFB75D;color:#3E2503;
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 auto;
+}
+
+.wrap{max-width:1320px; margin:0 auto; padding:12px 16px 64px}
+
+/* ---------- record header ---------- */
+.rec-head{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:12px 16px; margin-bottom:12px;
+}
+.crumb{font-size:11.5px; color:var(--text-weaker); text-transform:uppercase; letter-spacing:.4px}
+.rec-title{display:flex; align-items:center; gap:10px; margin-top:2px; flex-wrap:wrap}
+.rec-icon{
+  width:32px;height:32px;border-radius:var(--radius);background:#FFB75D;
+  display:grid;place-items:center;font-size:17px;flex:0 0 auto;
+}
+.rec-title h1{font-size:19px; font-weight:700; margin:0; letter-spacing:-.2px}
+.rec-fields{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px 20px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border-soft);
+}
+.rf-label{font-size:11px; color:var(--text-weaker); text-transform:uppercase; letter-spacing:.4px}
+.rf-value{font-size:13.5px; font-weight:600; margin-top:1px}
+
+/* path */
+.path{display:flex; margin:12px 0 0; overflow-x:auto; scrollbar-width:none}
+.path::-webkit-scrollbar{display:none}
+.path li{
+  list-style:none; position:relative; flex:1 1 0; min-width:98px;
+  background:var(--surface-2); border:1px solid var(--border-soft); border-right:none;
+  padding:6px 8px 6px 20px; font-size:11.5px; color:var(--text-weak); white-space:nowrap;
+}
+.path li:first-child{border-radius:var(--radius) 0 0 var(--radius); padding-left:10px}
+.path li:last-child{border-right:1px solid var(--border-soft); border-radius:0 var(--radius) var(--radius) 0}
+.path li::after{
+  content:""; position:absolute; right:-9px; top:50%; width:16px; height:16px;
+  transform:translateY(-50%) rotate(45deg); background:inherit;
+  border-top:1px solid var(--border-soft); border-right:1px solid var(--border-soft); z-index:1;
+}
+.path li:last-child::after{display:none}
+.path li.done{background:var(--brand); border-color:var(--brand); color:#fff}
+.path li.now{background:var(--navy); border-color:var(--navy); color:#fff; font-weight:700}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:12px; overflow-x:auto}
+.tabs button{
+  background:none; border:none; border-bottom:3px solid transparent; padding:9px 14px;
+  font-size:13px; color:var(--brand); cursor:pointer; white-space:nowrap; font-weight:400;
+}
+.tabs button:hover{background:var(--brand-light)}
+.tabs button.on{border-bottom-color:var(--brand); color:var(--text); font-weight:700}
+
+/* ---------- layout ---------- */
+.cols{display:grid; grid-template-columns:minmax(0,1fr) 316px; gap:12px; align-items:start}
+@media (max-width:940px){ .cols{grid-template-columns:minmax(0,1fr)} }
+
+.card{
+  background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.card-head{
+  padding:10px 14px; border-bottom:1px solid var(--border-soft);
+  display:flex; align-items:center; gap:8px; background:var(--surface);
+}
+.card-head h2{font-size:14px; margin:0; font-weight:700; letter-spacing:-.1px}
+.card-head .sub{font-size:11.5px; color:var(--text-weaker); margin-left:auto; text-align:right}
+.card-body{padding:14px}
+
+/* flow component framing */
+.flow-frame{border:1px dashed var(--brand); border-radius:var(--radius); position:relative; margin:0}
+.flow-tag{
+  position:absolute; top:-9px; left:12px; background:var(--surface); color:var(--brand);
+  font-size:10.5px; font-weight:700; letter-spacing:.5px; padding:0 6px; text-transform:uppercase;
+}
+
+/* ---------- flow nav ---------- */
+.steps{display:flex; gap:6px; flex-wrap:wrap; padding:14px 14px 0}
+.step{
+  font-size:11.5px; padding:4px 10px; border-radius:999px; border:1px solid var(--border);
+  color:var(--text-weak); background:var(--surface-2); cursor:pointer;
+}
+.step.on{background:var(--brand); border-color:var(--brand); color:#fff; font-weight:700}
+.step.ok{border-color:var(--success); color:var(--success)}
+.step[disabled]{opacity:.45; cursor:not-allowed}
+
+/* ---------- form fields ---------- */
+.sec{margin:0 0 20px}
+.sec:last-child{margin-bottom:0}
+.sec-title{
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px;
+  color:var(--text-weak); border-bottom:1px solid var(--border-soft); padding-bottom:5px; margin:0 0 12px;
+  display:flex; align-items:center; gap:8px;
+}
+.sec-title .badge{
+  background:var(--brand-light); color:var(--brand); border-radius:999px; padding:1px 8px;
+  font-size:10.5px; letter-spacing:.2px; text-transform:none; font-weight:700;
+}
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(238px,1fr)); gap:14px}
+.f{display:flex; flex-direction:column; gap:4px; min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font-size:12px; color:var(--text-weak)}
+.f label .req{color:var(--error); margin-left:2px}
+.f .help{font-size:11px; color:var(--text-weaker); line-height:1.45}
+.f input[type=text],.f input[type=number],.f input[type=date],.f select,.f textarea{
+  font-family:inherit; font-size:13px; color:var(--text);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:7px 9px; width:100%; min-width:0;
+}
+.f textarea{min-height:64px; resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{
+  outline:none; border-color:var(--brand); box-shadow:0 0 0 1px var(--brand);
+}
+.f.bad input,.f.bad select{border-color:var(--error); box-shadow:0 0 0 1px var(--error)}
+.f .err{font-size:11px; color:var(--error)}
+.check{display:flex; align-items:flex-start; gap:8px; font-size:13px; cursor:pointer; padding-top:2px}
+.check input{margin:2px 0 0; width:14px; height:14px; accent-color:var(--brand); flex:0 0 auto}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{
+  font-size:12px; padding:5px 11px; border-radius:999px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-weak); cursor:pointer; user-select:none;
+}
+.chip.on{background:var(--brand); border-color:var(--brand); color:#fff; font-weight:600}
+
+/* service cards */
+.svc{display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:10px}
+.svc-card{
+  border:1px solid var(--border); border-radius:var(--radius); padding:11px 12px;
+  cursor:pointer; background:var(--surface); display:flex; gap:10px; align-items:flex-start;
+  transition:border-color .12s, background .12s;
+}
+.svc-card:hover{border-color:var(--brand)}
+.svc-card.on{border-color:var(--brand); background:var(--brand-light); box-shadow:inset 0 0 0 1px var(--brand)}
+.svc-card .ico{font-size:18px; line-height:1.1; flex:0 0 auto}
+.svc-card .nm{font-weight:700; font-size:13px}
+.svc-card .bl{font-size:11.5px; color:var(--text-weaker); margin-top:2px; line-height:1.4}
+.svc-card .tagline{
+  display:inline-block; margin-top:5px; font-size:10.5px; letter-spacing:.3px;
+  text-transform:uppercase; color:var(--text-weaker); border:1px solid var(--border-soft);
+  border-radius:999px; padding:0 6px;
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  font-size:13px; padding:7px 16px; border-radius:var(--radius); cursor:pointer;
+  border:1px solid var(--border); background:var(--surface); color:var(--brand); font-weight:400;
+}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--brand); border-color:var(--brand); color:#fff; font-weight:600}
+.btn.primary:hover{background:var(--brand-dark)}
+.btn.primary[disabled]{background:#C9C9C9; border-color:#C9C9C9; color:#fff; cursor:not-allowed}
+.btn.ghost{border-color:transparent; background:none}
+.flow-foot{
+  display:flex; gap:8px; align-items:center; padding:12px 14px;
+  border-top:1px solid var(--border-soft); background:var(--surface-2); flex-wrap:wrap;
+}
+.flow-foot .spacer{margin-left:auto}
+.flow-foot .note{font-size:11.5px; color:var(--text-weaker)}
+
+/* ---------- effort panel ---------- */
+.panel{position:sticky; top:12px}
+.eff-row{display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:5px 0}
+.eff-row.sub{color:var(--text-weak); padding-left:10px; font-size:12px}
+.eff-row .v{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap}
+.eff-sep{border-top:1px solid var(--border-soft); margin:7px 0}
+.eff-total{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:4px 0}
+.eff-total .l{font-size:12px; color:var(--text-weak); text-transform:uppercase; letter-spacing:.4px}
+.eff-total .n{font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.4px}
+.eff-empty{font-size:12.5px; color:var(--text-weaker); line-height:1.6}
+.pill{
+  display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600;
+  border-radius:999px; padding:3px 9px;
+}
+.pill.ok{background:var(--success-bg); color:var(--success)}
+.pill.warn{background:var(--warn-bg); color:var(--warn)}
+.pill.err{background:var(--error-bg); color:var(--error)}
+.pill.info{background:var(--brand-light); color:var(--brand)}
+
+.notice{
+  border-radius:var(--radius); padding:9px 11px; font-size:12px; line-height:1.5; margin-top:10px;
+  display:flex; gap:8px; align-items:flex-start;
+}
+.notice.warn{background:var(--warn-bg); color:var(--warn)}
+.notice.ok{background:var(--success-bg); color:var(--success)}
+.notice.info{background:var(--brand-light); color:var(--brand-dark)}
+:root[data-theme="dark"] .notice.info,
+:root:not([data-theme="light"]) .notice.info{color:#9CC8F0}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .notice.info{color:var(--brand-dark)}}
+
+/* ---------- submitted record ---------- */
+.kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px 20px}
+table.rel{width:100%; border-collapse:collapse; font-size:12.5px}
+table.rel th{
+  text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px;
+  color:var(--text-weaker); font-weight:600; padding:7px 10px; border-bottom:1px solid var(--border-soft);
+  background:var(--surface-2); white-space:nowrap;
+}
+table.rel td{padding:7px 10px; border-bottom:1px solid var(--border-soft); vertical-align:top}
+table.rel tr:last-child td{border-bottom:none}
+table.rel td.k{font-family:var(--mono); font-size:11px; color:var(--text-weaker); white-space:nowrap}
+table.rel td.v{font-weight:600}
+.scroll-x{overflow-x:auto}
+
+/* ---------- build drawer ---------- */
+.drawer-bg{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; opacity:0; pointer-events:none;
+  transition:opacity .16s;
+}
+.drawer-bg.on{opacity:1; pointer-events:auto}
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; width:min(620px,100%); background:var(--surface);
+  z-index:51; transform:translateX(100%); transition:transform .2s ease; overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+}
+.drawer.on{transform:none}
+.drawer-head{
+  position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--border-soft);
+  padding:14px 18px; display:flex; align-items:center; gap:10px; z-index:2;
+}
+.drawer-head h2{font-size:16px; margin:0; font-weight:700}
+.drawer-body{padding:18px}
+.drawer-body h3{
+  font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-weak);
+  margin:22px 0 8px; border-bottom:1px solid var(--border-soft); padding-bottom:5px;
+}
+.drawer-body h3:first-child{margin-top:0}
+.drawer-body p{font-size:13px; line-height:1.6; margin:0 0 10px; color:var(--text-weak)}
+.drawer-body code{font-family:var(--mono); font-size:11.5px; background:var(--surface-2); padding:1px 4px; border-radius:3px}
+pre.model{
+  font-family:var(--mono); font-size:11.5px; line-height:1.65; background:var(--surface-2);
+  border:1px solid var(--border-soft); border-radius:var(--radius); padding:12px; overflow-x:auto; margin:0;
+  color:var(--text);
+}
+.fab{
+  position:fixed; right:16px; bottom:16px; z-index:40;
+  background:var(--navy); color:#fff; border:none; border-radius:999px;
+  padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer; box-shadow:var(--shadow-lg);
+}
+.fab:hover{background:#021D40}
+.hidden{display:none !important}
+.footer{
+  max-width:1320px; margin:0 auto; padding:0 16px 28px; font-size:11.5px; color:var(--text-weaker);
+  line-height:1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="ribbon">
+  <div><b>Prototype</b> &nbsp;·&nbsp; this is a clickable mock of how the DXR Cyber scoping document would behave as a Salesforce screen flow. Not a Salesforce org. Rates are illustrative.</div>
+  <div class="r-actions">
+    <button id="themeBtn" type="button">Dark</button>
+    <button id="resetBtn" type="button">Reset demo</button>
+  </div>
+</div>
+
+<header class="appbar">
+  <div class="waffle"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="appname">DXR Cyber Sales</div>
+  <nav class="appnav">
+    <span>Home</span><span>Accounts</span><span class="on">Opportunities</span>
+    <span>Scoping Documents</span><span>Quotes</span><span>Reports</span><span>Dashboards</span>
+  </nav>
+  <div class="spacer"></div>
+  <div class="avatar">SH</div>
+</header>
+
+<div class="wrap">
+
+  <section class="rec-head">
+    <div class="crumb">Opportunity</div>
+    <div class="rec-title">
+      <div class="rec-icon">💼</div>
+      <h1>Northvale Manufacturing — ITHC Year 3</h1>
+      <span class="pill info">DXR-20418</span>
+    </div>
+
+    <ul class="path">
+      <li class="done">Qualification</li>
+      <li class="done">Discovery</li>
+      <li class="now">Scoping</li>
+      <li>Proposal</li>
+      <li>Negotiation</li>
+      <li>Closed Won</li>
+    </ul>
+
+    <div class="rec-fields">
+      <div><div class="rf-label">Account</div><div class="rf-value">Northvale Manufacturing Ltd</div></div>
+      <div><div class="rf-label">Amount</div><div class="rf-value" id="hdrAmount">—</div></div>
+      <div><div class="rf-label">Close Date</div><div class="rf-value">28/11/2026</div></div>
+      <div><div class="rf-label">Owner</div><div class="rf-value">Sarah Hughes</div></div>
+      <div><div class="rf-label">Business Unit</div><div class="rf-value">DXR Cyber</div></div>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button type="button" data-tab="details">Details</button>
+    <button type="button" data-tab="scoping" class="on">Scoping Document</button>
+    <button type="button" data-tab="related">Related</button>
+  </nav>
+
+  <!-- ============ DETAILS TAB ============ -->
+  <section id="tab-details" class="hidden">
+    <div class="card"><div class="card-head"><h2>Opportunity Details</h2></div>
+      <div class="card-body">
+        <div class="kv">
+          <div><div class="rf-label">Opportunity Name</div><div class="rf-value">Northvale Manufacturing — ITHC Year 3</div></div>
+          <div><div class="rf-label">Type</div><div class="rf-value">Existing Business — Renewal</div></div>
+          <div><div class="rf-label">Lead Source</div><div class="rf-value">Existing Customer</div></div>
+          <div><div class="rf-label">Primary Contact</div><div class="rf-value">Daniel Reeve, Head of IT</div></div>
+          <div><div class="rf-label">Scoping Status</div><div class="rf-value" id="detStatus">Not Started</div></div>
+          <div><div class="rf-label">Scoped Effort (Days)</div><div class="rf-value" id="detDays">—</div></div>
+        </div>
+        <div class="notice info">
+          <span>ℹ️</span>
+          <div>In the real build these are fields on the Opportunity, stamped by the flow when the scoping
+          document is submitted. The rep never types them — they are derived from the answers.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RELATED TAB ============ -->
+  <section id="tab-related" class="hidden">
+    <div class="card"><div class="card-head"><h2>Scoping Documents</h2><div class="sub" id="relCount">0 items</div></div>
+      <div class="card-body scroll-x"><div id="relList"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ SCOPING TAB ============ -->
+  <section id="tab-scoping">
+    <div class="cols">
+      <div>
+        <div class="card flow-frame">
+          <span class="flow-tag">Flow · Scoping_Document_Capture</span>
+
+          <div id="flowLive">
+            <div class="steps" id="steps"></div>
+            <div class="card-body">
+              <div id="screen"></div>
+            </div>
+            <div class="flow-foot">
+              <button class="btn" id="prevBtn" type="button">Previous</button>
+              <button class="btn primary" id="nextBtn" type="button">Next</button>
+              <div class="spacer"></div>
+              <span class="note" id="autosave">Draft saved automatically</span>
+            </div>
+          </div>
+
+          <div id="flowDone" class="hidden">
+            <div class="card-body" id="doneBody"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="card">
+          <div class="card-head"><h2>Effort &amp; Value</h2><div class="sub">live</div></div>
+          <div class="card-body" id="effort"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer" id="footerNote"></div>
+
+<button class="fab" id="buildBtn" type="button">How this is built ↗</button>
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>How this is built in Salesforce</h2>
+    <div style="margin-left:auto"><button class="btn" id="drawerClose" type="button">Close</button></div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script>
+/* ============================================================
+   Config — illustrative commercial assumptions
+   ============================================================ */
+const CFG = {
+  dayRate: 1250,
+  oohUplift: 0.25,
+  travelDay: 0.5,          // days added per onsite visit
+  travelExpense: 350,      // £ per onsite visit
+  approvalDays: 20,        // > this needs Technical Director approval
+  termDiscount: {'12 months':0, '24 months':0.05, '36 months':0.10}
+};
+const gbp = n => '£' + Math.round(n).toLocaleString('en-GB');
+const d1  = n => (Math.round(n*2)/2).toLocaleString('en-GB');
+
+/* tiered lookup: tier(n, [[maxA,valA],[maxB,valB]], fallback) */
+function tier(n, pairs, fallback){
+  n = Number(n)||0;
+  for (const [max,val] of pairs) if (n <= max) return val;
+  return fallback;
+}
+
+/* ============================================================
+   Services
+   ============================================================ */
+const SERVICES = [
+  {id:'EXT',  ico:'🌐', nm:'External Infrastructure',   bl:'Internet-facing estate, perimeter services.', kind:'project'},
+  {id:'INT',  ico:'🏢', nm:'Internal Infrastructure',   bl:'Internal network, AD, host build review.',    kind:'project'},
+  {id:'WEB',  ico:'🕸️', nm:'Web Application',           bl:'Authenticated and unauthenticated app test.', kind:'project'},
+  {id:'MOB',  ico:'📱', nm:'Mobile Application',        bl:'iOS / Android client and backing API.',       kind:'project'},
+  {id:'CLD',  ico:'☁️', nm:'Cloud Security Review',     bl:'Configuration review against CIS benchmarks.',kind:'project'},
+  {id:'SOC',  ico:'🎣', nm:'Social Engineering',        bl:'Phishing, vishing, physical, pretexting.',    kind:'project'},
+  {id:'CMP',  ico:'📋', nm:'Compliance & Certification',bl:'CE, CE+, ISO 27001, PCI DSS, DSPT, ITHC.',    kind:'project'},
+  {id:'ATDR', ico:'🛡️', nm:'ATDR (Managed Detection)',  bl:'24/7 monitoring and response. Recurring.',    kind:'recurring'}
+];
+const svc = id => SERVICES.find(s=>s.id===id);
+const has = id => (A.services||[]).includes(id);
+
+/* ============================================================
+   Question bank — this is the Scoping_Question__mdt analogue.
+   Every entry carries its own visibility rule, so adding a
+   question is a data change, not a flow change.
+   ============================================================ */
+const Q = [
+  /* --- External infrastructure --- */
+  {k:'ext_ips', s:'EXT', l:'Live IP addresses in scope', t:'number', req:true, min:1,
+   h:'Externally reachable IPs, not the full CIDR allocation.'},
+  {k:'ext_auth', s:'EXT', l:'Authenticated testing of exposed portals required', t:'check'},
+  {k:'ext_waf', s:'EXT', l:'WAF or IPS in front of the estate', t:'pick', req:true,
+   o:['Unknown','None','Yes — DXR will be allowlisted','Yes — no allowlisting'],
+   h:'No allowlisting means evasion time, which adds a day.'},
+
+  /* --- Internal infrastructure --- */
+  {k:'int_hosts', s:'INT', l:'Live hosts and devices in scope', t:'number', req:true, min:1},
+  {k:'int_sites', s:'INT', l:'Physical sites in scope', t:'number', req:true, min:1, d:1},
+  {k:'int_domains', s:'INT', l:'Active Directory domains', t:'number', min:0, d:1},
+  {k:'int_access', s:'INT', l:'How will we connect?', t:'pick', req:true,
+   o:['Onsite consultant','Shipped testing device','Client VPN']},
+  {k:'int_seg', s:'INT', l:'Network segregation testing required', t:'check'},
+
+  /* --- Web application --- */
+  {k:'web_apps', s:'WEB', l:'Number of applications', t:'number', req:true, min:1, d:1},
+  {k:'web_pages', s:'WEB', l:'Dynamic pages or functions (all apps)', t:'number', req:true, min:1,
+   h:'Count distinct functions, not static content pages.'},
+  {k:'web_roles', s:'WEB', l:'Distinct user roles to test', t:'number', req:true, min:1, d:1},
+  {k:'web_auth', s:'WEB', l:'Authenticated testing required', t:'check', d:true},
+  {k:'web_api',  s:'WEB', l:'API endpoints in scope', t:'check'},
+  {k:'web_api_count', s:'WEB', l:'Number of API endpoints', t:'number', req:true, min:1,
+   vis:a=>!!a.web_api, visTxt:'web_api = true'},
+  {k:'web_cms', s:'WEB', l:'Standard off-the-shelf CMS (WordPress, Drupal…)', t:'check',
+   h:'Known attack surface — reduces effort.'},
+
+  /* --- Mobile --- */
+  {k:'mob_platforms', s:'MOB', l:'Platforms', t:'multi', req:true, o:['iOS','Android']},
+  {k:'mob_src', s:'MOB', l:'Source code available for review', t:'check'},
+  {k:'mob_api', s:'MOB', l:'Backing API in scope', t:'check'},
+
+  /* --- Cloud --- */
+  {k:'cld_providers', s:'CLD', l:'Providers', t:'multi', req:true, o:['AWS','Azure','GCP','Microsoft 365']},
+  {k:'cld_subs', s:'CLD', l:'Subscriptions, accounts or tenants', t:'number', req:true, min:1, d:1},
+  {k:'cld_cis', s:'CLD', l:'Full CIS benchmark review required', t:'check'},
+
+  /* --- Social engineering --- */
+  {k:'soc_types', s:'SOC', l:'Engagement types', t:'multi', req:true,
+   o:['Phishing','Vishing','Physical intrusion','Pretext calling']},
+  {k:'soc_targets', s:'SOC', l:'Number of targets', t:'number', req:true, min:1},
+  {k:'soc_bespoke', s:'SOC', l:'Bespoke pretext or cloned landing page required', t:'check'},
+
+  /* --- Compliance --- */
+  {k:'cmp_framework', s:'CMP', l:'Framework', t:'pick', req:true,
+   o:['Cyber Essentials','Cyber Essentials Plus','ISO 27001','PCI DSS','NHS DSPT','ITHC / PSN']},
+  {k:'cmp_devices', s:'CMP', l:'Sample devices for assessment', t:'number', req:true, min:1,
+   vis:a=>a.cmp_framework==='Cyber Essentials Plus', visTxt:"cmp_framework = 'Cyber Essentials Plus'"},
+  {k:'cmp_employees', s:'CMP', l:'Employees in scope', t:'number', req:true, min:1,
+   vis:a=>['ISO 27001','NHS DSPT'].includes(a.cmp_framework), visTxt:"cmp_framework IN ('ISO 27001','NHS DSPT')"},
+  {k:'cmp_isms', s:'CMP', l:'Existing ISMS maturity', t:'pick', req:true,
+   o:['None','Partial — some policies exist','Documented — needs audit only'],
+   vis:a=>a.cmp_framework==='ISO 27001', visTxt:"cmp_framework = 'ISO 27001'"},
+  {k:'cmp_level', s:'CMP', l:'PCI DSS merchant level', t:'pick', req:true,
+   o:['Level 1','Level 2','Level 3','Level 4'],
+   vis:a=>a.cmp_framework==='PCI DSS', visTxt:"cmp_framework = 'PCI DSS'"},
+  {k:'cmp_support', s:'CMP', l:'Engagement type', t:'pick', req:true,
+   o:['Gap analysis only','Gap analysis + remediation support','Full certification support']},
+
+  /* --- ATDR --- */
+  {k:'atdr_endpoints', s:'ATDR', l:'Endpoints under management', t:'number', req:true, min:1},
+  {k:'atdr_users', s:'ATDR', l:'Users', t:'number', req:true, min:1},
+  {k:'atdr_cloud', s:'ATDR', l:'Microsoft 365 / Entra ID log sources included', t:'check', d:true},
+  {k:'atdr_sources', s:'ATDR', l:'Additional log sources (firewall, servers, SaaS)', t:'number', min:0, d:0},
+  {k:'atdr_hours', s:'ATDR', l:'Coverage', t:'pick', req:true, o:['24/7/365','Business hours'], d:'24/7/365'},
+  {k:'atdr_term', s:'ATDR', l:'Contract term', t:'pick', req:true, o:['12 months','24 months','36 months'], d:'12 months'},
+
+  /* --- Delivery & constraints (always on once a service is chosen) --- */
+  {k:'log_mode', s:'LOG', l:'Delivery', t:'pick', req:true, o:['Fully remote','Onsite','Hybrid'], d:'Fully remote'},
+  {k:'log_visits', s:'LOG', l:'Onsite visits required', t:'number', req:true, min:1, d:1,
+   vis:a=>a.log_mode==='Onsite'||a.log_mode==='Hybrid', visTxt:"log_mode IN ('Onsite','Hybrid')"},
+  {k:'log_postcode', s:'LOG', l:'Primary site postcode', t:'text', req:true,
+   vis:a=>a.log_mode==='Onsite'||a.log_mode==='Hybrid', visTxt:"log_mode IN ('Onsite','Hybrid')"},
+  {k:'log_ooh', s:'LOG', l:'Out-of-hours or weekend testing required', t:'check'},
+  {k:'log_ooh_pct', s:'LOG', l:'Percentage of testing out of hours', t:'number', req:true, min:1, max:100, d:25,
+   vis:a=>!!a.log_ooh, visTxt:'log_ooh = true'},
+  {k:'log_start', s:'LOG', l:'Target start date', t:'date', req:true},
+  {k:'log_deadline', s:'LOG', l:'Hard deadline (compliance or contractual)', t:'date'},
+  {k:'log_retest', s:'LOG', l:'Retest', t:'pick', req:true, d:'One retest included',
+   o:['None','One retest included','Unlimited retest — 30 days']},
+  {k:'log_contact', s:'LOG', l:'Client technical contact', t:'text', req:true,
+   h:'Who the test team calls when something breaks at 2am.'},
+  {k:'log_prior', s:'LOG', l:'Previous DXR report available for reference', t:'check'},
+  {k:'log_notes', s:'LOG', l:'Anything else the test team must know', t:'area', wide:true}
+];
+const qByKey = k => Q.find(q=>q.k===k);
+
+/* a question is live when its service is selected AND its own rule passes */
+function qLive(q, a){
+  if (q.s !== 'LOG' && !(a.services||[]).includes(q.s)) return false;
+  if (q.s === 'LOG' && !(a.services||[]).length) return false;
+  return q.vis ? !!q.vis(a) : true;
+}
+
+/* ============================================================
+   Effort model — days per service
+   ============================================================ */
+const EFFORT = {
+  EXT: a => {
+    let d = tier(a.ext_ips, [[16,2],[64,3],[256,5],[1024,8]], 12);
+    if (a.ext_auth) d += 1;
+    if (a.ext_waf === 'Yes — no allowlisting') d += 1;
+    return d;
+  },
+  INT: a => {
+    let d = tier(a.int_hosts, [[50,3],[250,5],[1000,8],[5000,12]], 16);
+    d += Math.max(0,(Number(a.int_sites)||1)-1);
+    d += Math.max(0,(Number(a.int_domains)||1)-1);
+    if (a.int_seg) d += 2;
+    return d;
+  },
+  WEB: a => {
+    let d = tier(a.web_pages, [[10,2],[30,4],[75,7],[150,10]], 14);
+    d += Math.max(0,(Number(a.web_apps)||1)-1) * 1.5;
+    d += Math.max(0,(Number(a.web_roles)||1)-1) * 0.5;
+    if (a.web_auth) d += 1;
+    if (a.web_api) d += tier(a.web_api_count, [[10,1],[30,2],[60,3]], 5);
+    if (a.web_cms) d -= 1;
+    return Math.max(1, d);
+  },
+  MOB: a => {
+    let d = ((a.mob_platforms||[]).length || 0) * 2;
+    if (a.mob_src) d += 2;
+    if (a.mob_api) d += 2;
+    return Math.max(1, d);
+  },
+  CLD: a => {
+    let d = ((a.cld_providers||[]).length || 0) * 1.5;
+    d += Math.max(0,(Number(a.cld_subs)||1)-1) * 0.5;
+    if (a.cld_cis) d += 2;
+    return Math.max(1, d);
+  },
+  SOC: a => {
+    let d = ((a.soc_types||[]).length || 0) * 1;
+    d += tier(a.soc_targets, [[50,1],[250,2],[1000,3]], 4);
+    if (a.soc_bespoke) d += 1;
+    return Math.max(1, d);
+  },
+  CMP: a => {
+    let base = 2;
+    switch (a.cmp_framework) {
+      case 'Cyber Essentials': base = 1; break;
+      case 'Cyber Essentials Plus': base = 2 + tier(a.cmp_devices, [[5,0],[15,1],[40,2]], 4); break;
+      case 'ISO 27001':
+        base = tier(a.cmp_employees, [[50,6],[250,10],[1000,16]], 22);
+        if (a.cmp_isms === 'None') base += 4;
+        if (a.cmp_isms === 'Documented — needs audit only') base -= 3;
+        break;
+      case 'PCI DSS': base = {'Level 1':12,'Level 2':8,'Level 3':5,'Level 4':3}[a.cmp_level] || 5; break;
+      case 'NHS DSPT': base = tier(a.cmp_employees, [[250,4],[1000,7]], 10); break;
+      case 'ITHC / PSN': base = 5; break;
+    }
+    const mult = {'Gap analysis only':1,'Gap analysis + remediation support':1.5,'Full certification support':2}[a.cmp_support] || 1;
+    return Math.max(1, base * mult);
+  }
+};
+
+function atdrMonthly(a){
+  let m = (Number(a.atdr_endpoints)||0) * 8
+        + (Number(a.atdr_users)||0) * 3
+        + (Number(a.atdr_sources)||0) * 45;
+  if (a.atdr_cloud) m += 150;
+  if (a.atdr_hours === 'Business hours') m *= 0.6;
+  m *= (1 - (CFG.termDiscount[a.atdr_term] || 0));
+  return m;
+}
+
+/* ============================================================
+   Calculation
+   ============================================================ */
+function serviceReady(s, a){
+  return !Q.filter(q=>q.s===s && qLive(q,a)).some(missing);
+}
+function calc(a){
+  const lines = [];
+  let days = 0;
+  for (const s of (a.services||[])) {
+    if (s === 'ATDR') continue;
+    if (!serviceReady(s, a)){ lines.push({id:s, nm:svc(s).nm, days:0, pending:true}); continue; }
+    const d = EFFORT[s] ? EFFORT[s](a) : 0;
+    lines.push({id:s, nm:svc(s).nm, days:d});
+    days += d;
+  }
+  const visits    = (a.log_mode === 'Onsite' || a.log_mode === 'Hybrid') ? (Number(a.log_visits)||0) : 0;
+  const travelDays= visits * CFG.travelDay;
+  const retest    = a.log_retest === 'One retest included' ? 1
+                  : a.log_retest === 'Unlimited retest — 30 days' ? 2 : 0;
+
+  const billable  = days + travelDays + retest;
+  const oohPct    = a.log_ooh ? (Number(a.log_ooh_pct)||0)/100 : 0;
+  const baseFee   = billable * CFG.dayRate;
+  const oohFee    = baseFee * oohPct * CFG.oohUplift;
+  const expenses  = visits * CFG.travelExpense;
+  const projectFee= baseFee + oohFee + expenses;
+
+  const atdrReady = has('ATDR') && serviceReady('ATDR', a);
+  const monthly   = atdrReady ? atdrMonthly(a) : 0;
+  const arr       = monthly * 12;
+
+  return {lines, days, travelDays, retest, billable, visits, oohPct, baseFee, oohFee, expenses,
+          projectFee, monthly, arr, total: projectFee + arr, atdrPending: has('ATDR') && !atdrReady,
+          pending: lines.some(l=>l.pending), approval: billable > CFG.approvalDays};
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+const STEPS = [
+  {id:'services', nm:'Services in Scope'},
+  {id:'tech',     nm:'Technical Scope'},
+  {id:'log',      nm:'Delivery & Constraints'},
+  {id:'review',   nm:'Review & Submit'}
+];
+let A = {};            // answers
+let step = 0;
+let submitted = null;  // submitted record snapshot
+let touched = false;   // show validation errors only after a Next attempt
+
+const LSK = 'dxr-scoping-demo-v1';
+function save(){ try{ localStorage.setItem(LSK, JSON.stringify({A, step, submitted})); }catch(e){} }
+function load(){
+  try{
+    const r = JSON.parse(localStorage.getItem(LSK) || 'null');
+    if (r && r.A) { A = r.A; step = r.step || 0; submitted = r.submitted || null; }
+  }catch(e){}
+}
+function defaults(){
+  const a = {services:[]};
+  for (const q of Q) if (q.d !== undefined) a[q.k] = q.d;
+  return a;
+}
+
+/* ============================================================
+   Field rendering
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function missing(q){
+  if (!q.req) return false;
+  const v = A[q.k];
+  if (q.t === 'multi') return !(v && v.length);
+  if (q.t === 'check') return false;
+  return v === undefined || v === null || v === '';
+}
+
+function fieldHTML(q){
+  const bad  = touched && missing(q);
+  const id   = 'f_' + q.k;
+  const v    = A[q.k];
+  const help = q.h ? `<div class="help">${esc(q.h)}</div>` : '';
+  const err  = bad ? `<div class="err">Complete this field.</div>` : '';
+  const lab  = `<label for="${id}">${esc(q.l)}${q.req?'<span class="req">*</span>':''}</label>`;
+  let inner  = '';
+
+  if (q.t === 'check'){
+    return `<div class="f ${q.wide?'wide':''}">
+      <label class="check" for="${id}">
+        <input type="checkbox" id="${id}" data-k="${q.k}" ${v?'checked':''}>
+        <span>${esc(q.l)}</span>
+      </label>${help}</div>`;
+  }
+  if (q.t === 'multi'){
+    const chips = q.o.map(o=>{
+      const on = (v||[]).includes(o);
+      return `<span class="chip ${on?'on':''}" data-multi="${q.k}" data-val="${esc(o)}" role="button" tabindex="0">${esc(o)}</span>`;
+    }).join('');
+    return `<div class="f ${q.wide?'wide':''} ${bad?'bad':''}">${lab}<div class="chips">${chips}</div>${help}${err}</div>`;
+  }
+  if (q.t === 'pick'){
+    inner = `<select id="${id}" data-k="${q.k}">
+      <option value=""${v?'':' selected'}>--None--</option>
+      ${q.o.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}
+    </select>`;
+  } else if (q.t === 'area'){
+    inner = `<textarea id="${id}" data-k="${q.k}">${esc(v||'')}</textarea>`;
+  } else if (q.t === 'number'){
+    inner = `<input type="number" id="${id}" data-k="${q.k}" value="${v===undefined||v===null?'':esc(v)}"
+             ${q.min!==undefined?`min="${q.min}"`:''} ${q.max!==undefined?`max="${q.max}"`:''}>`;
+  } else if (q.t === 'date'){
+    inner = `<input type="date" id="${id}" data-k="${q.k}" value="${esc(v||'')}">`;
+  } else {
+    inner = `<input type="text" id="${id}" data-k="${q.k}" value="${esc(v||'')}">`;
+  }
+  return `<div class="f ${q.wide?'wide':''} ${bad?'bad':''}">${lab}${inner}${help}${err}</div>`;
+}
+
+function sectionHTML(sid, title, badge){
+  const qs = Q.filter(q=>q.s===sid && qLive(q,A));
+  if (!qs.length) return '';
+  return `<div class="sec">
+    <div class="sec-title">${esc(title)}${badge?`<span class="badge">${esc(badge)}</span>`:''}</div>
+    <div class="grid">${qs.map(fieldHTML).join('')}</div>
+  </div>`;
+}
+
+/* ============================================================
+   Screens
+   ============================================================ */
+function screenServices(){
+  const cards = SERVICES.map(s=>{
+    const on = has(s.id);
+    return `<div class="svc-card ${on?'on':''}" data-svc="${s.id}" role="button" tabindex="0">
+      <div class="ico">${s.ico}</div>
+      <div><div class="nm">${esc(s.nm)}</div><div class="bl">${esc(s.bl)}</div>
+      <span class="tagline">${s.kind==='recurring'?'Recurring':'Project'}</span></div>
+    </div>`;
+  }).join('');
+  const n = (A.services||[]).length;
+  return `<div class="sec">
+    <div class="sec-title">Which services are in scope?${n?`<span class="badge">${n} selected</span>`:''}</div>
+    <div class="svc">${cards}</div>
+    ${touched && !n ? '<div class="notice warn"><span>⚠️</span><div>Select at least one service to continue.</div></div>' : ''}
+    <div class="notice info"><span>ℹ️</span><div>Everything after this screen is driven by what you pick here.
+      Pick two services and only those two question sets appear — the rep never scrolls past questions that do not apply to them.</div></div>
+  </div>`;
+}
+
+function screenTech(){
+  const sel = (A.services||[]).filter(s=>s!=='ATDR');
+  let html = '';
+  for (const s of sel) html += sectionHTML(s, svc(s).nm, svc(s).ico);
+  if (has('ATDR')) html += sectionHTML('ATDR', 'ATDR — Managed Detection & Response', '🛡️');
+  if (!html) html = '<div class="notice warn"><span>⚠️</span><div>No services selected. Go back a step.</div></div>';
+  return html;
+}
+
+function screenLog(){
+  return sectionHTML('LOG', 'Delivery & Constraints', '🗓️');
+}
+
+function screenReview(){
+  const c = calc(A);
+  const rows = [];
+  for (const s of (A.services||[])){
+    for (const q of Q.filter(x=>x.s===s && qLive(x,A))){
+      rows.push([svc(s).nm, q.l, fmtVal(q, A[q.k])]);
+    }
+  }
+  for (const q of Q.filter(x=>x.s==='LOG' && qLive(x,A))){
+    if (A[q.k] === undefined || A[q.k] === '' || A[q.k] === false) continue;
+    rows.push(['Delivery', q.l, fmtVal(q, A[q.k])]);
+  }
+  const gaps = Q.filter(q=>qLive(q,A) && missing(q));
+
+  return `<div class="sec">
+    <div class="sec-title">Review<span class="badge">${rows.length} answers</span></div>
+    ${gaps.length ? `<div class="notice warn"><span>⚠️</span><div><b>${gaps.length} required ${gaps.length===1?'answer is':'answers are'} missing:</b>
+      ${gaps.map(g=>esc(g.l)).join(' · ')}</div></div>`
+    : `<div class="notice ok"><span>✓</span><div>All required answers captured. Submitting locks the document and routes it for technical review.</div></div>`}
+    <div class="scroll-x" style="margin-top:12px">
+      <table class="rel">
+        <thead><tr><th>Service</th><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="v">${esc(r[2])}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    ${c.approval ? `<div class="notice warn" style="margin-top:12px"><span>⚠️</span><div>
+      <b>${d1(c.billable)} days exceeds the ${CFG.approvalDays}-day threshold.</b>
+      Submitting will route this to the Technical Director for approval before a quote can be raised.</div></div>` : ''}
+  </div>`;
+}
+
+function fmtVal(q, v){
+  if (v === undefined || v === null || v === '') return '—';
+  if (q.t === 'check') return v ? 'Yes' : 'No';
+  if (q.t === 'multi') return (v||[]).join(', ') || '—';
+  return String(v);
+}
+
+/* ============================================================
+   Effort panel
+   ============================================================ */
+function renderEffort(){
+  const el = document.getElementById('effort');
+  const c = calc(A);
+  if (!(A.services||[]).length){
+    el.innerHTML = `<div class="eff-empty">Pick the services in scope and the day count, project fee
+      and recurring value build here as you answer — in front of the client, on the call.</div>`;
+    document.getElementById('hdrAmount').textContent = '—';
+    document.getElementById('detDays').textContent = '—';
+    return;
+  }
+  let h = '';
+  for (const l of c.lines) h += `<div class="eff-row"><span>${esc(l.nm)}</span><span class="v" ${l.pending?'style="font-weight:400;color:var(--text-weaker)"':''}>${l.pending?'awaiting input':d1(l.days)+' d'}</span></div>`;
+  if (c.travelDays) h += `<div class="eff-row sub"><span>Travel (${c.visits} visit${c.visits===1?'':'s'})</span><span class="v">${d1(c.travelDays)} d</span></div>`;
+  if (c.retest)     h += `<div class="eff-row sub"><span>Retest</span><span class="v">${d1(c.retest)} d</span></div>`;
+
+  if (c.lines.length || c.travelDays || c.retest){
+    h += `<div class="eff-sep"></div>
+      <div class="eff-row"><span><b>Billable days</b></span><span class="v">${d1(c.billable)} d</span></div>
+      <div class="eff-row sub"><span>Fees @ ${gbp(CFG.dayRate)}/day</span><span class="v">${gbp(c.baseFee)}</span></div>`;
+    if (c.oohFee)   h += `<div class="eff-row sub"><span>Out of hours (${Math.round(c.oohPct*100)}% @ +${CFG.oohUplift*100}%)</span><span class="v">${gbp(c.oohFee)}</span></div>`;
+    if (c.expenses) h += `<div class="eff-row sub"><span>Travel expenses</span><span class="v">${gbp(c.expenses)}</span></div>`;
+    h += `<div class="eff-sep"></div>
+      <div class="eff-total"><span class="l">Project fee</span><span class="n">${gbp(c.projectFee)}</span></div>`;
+  }
+  if (c.atdrPending){
+    h += `<div class="eff-sep"></div>
+      <div class="eff-row"><span>ATDR</span><span class="v" style="font-weight:400;color:var(--text-weaker)">awaiting input</span></div>`;
+  }
+  if (c.monthly){
+    h += `<div class="eff-sep"></div>
+      <div class="eff-row"><span>ATDR monthly</span><span class="v">${gbp(c.monthly)}</span></div>
+      <div class="eff-total"><span class="l">ATDR ARR</span><span class="n">${gbp(c.arr)}</span></div>`;
+  }
+  h += `<div class="eff-sep"></div>
+    <div class="eff-total"><span class="l">Opportunity amount</span><span class="n">${gbp(c.total)}</span></div>`;
+
+  h += (c.pending || c.atdrPending)
+     ? `<div class="notice info"><span>⋯</span><div>Finish the technical questions and the day count, fee and approval verdict resolve here.</div></div>`
+     : c.approval
+     ? `<div class="notice warn"><span>⚠️</span><div>Over ${CFG.approvalDays} days — Technical Director approval required on submit.</div></div>`
+     : `<div class="notice ok"><span>✓</span><div>Within the self-serve approval threshold.</div></div>`;
+
+  h += `<div class="notice info"><span>ℹ️</span><div>Day rate, out-of-hours uplift and the approval
+     threshold are illustrative. In the build they live in custom metadata, so Finance changes them without a deployment.</div></div>`;
+
+  el.innerHTML = h;
+  document.getElementById('hdrAmount').textContent = gbp(c.total);
+  document.getElementById('detDays').textContent = d1(c.billable) + ' days';
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function renderSteps(){
+  const el = document.getElementById('steps');
+  el.innerHTML = STEPS.map((s,i)=>{
+    const done = i < step;
+    return `<button class="step ${i===step?'on':''} ${done?'ok':''}" data-step="${i}" type="button">${i+1}. ${esc(s.nm)}</button>`;
+  }).join('');
+}
+
+function render(){
+  if (submitted){
+    document.getElementById('flowLive').classList.add('hidden');
+    document.getElementById('flowDone').classList.remove('hidden');
+    document.getElementById('doneBody').innerHTML = submittedHTML();
+  } else {
+    document.getElementById('flowLive').classList.remove('hidden');
+    document.getElementById('flowDone').classList.add('hidden');
+    renderSteps();
+    const id = STEPS[step].id;
+    document.getElementById('screen').innerHTML =
+      id === 'services' ? screenServices() :
+      id === 'tech'     ? screenTech()     :
+      id === 'log'      ? screenLog()      : screenReview();
+    document.getElementById('prevBtn').disabled = step === 0;
+    document.getElementById('nextBtn').textContent = id === 'review' ? 'Submit for review' : 'Next';
+  }
+  renderEffort();
+  renderRelated();
+  document.getElementById('detStatus').textContent =
+    submitted ? submitted.status : ((A.services||[]).length ? 'Draft' : 'Not Started');
+  save();
+}
+
+/* ============================================================
+   Submitted record
+   ============================================================ */
+function submittedHTML(){
+  const r = submitted, c = r.calc;
+  const rows = r.responses.map(x=>`<tr>
+    <td class="k">${esc(x.key)}</td><td>${esc(x.section)}</td><td>${esc(x.label)}</td><td class="v">${esc(x.value)}</td>
+  </tr>`).join('');
+  return `
+  <div class="sec">
+    <div class="sec-title">Scoping Document<span class="badge">${esc(r.name)}</span></div>
+    ${c.approval
+      ? `<div class="notice warn"><span>🔒</span><div><b>Submitted and locked — pending Technical Director approval.</b>
+         ${d1(c.billable)} days is over the ${CFG.approvalDays}-day threshold. The rep can no longer edit it; the approver can recall it.</div></div>`
+      : `<div class="notice ok"><span>✓</span><div><b>Submitted and locked.</b> Approved automatically — under the ${CFG.approvalDays}-day threshold. A quote can now be raised from this scope.</div></div>`}
+    <div class="kv" style="margin-top:14px">
+      <div><div class="rf-label">Status</div><div class="rf-value">${esc(r.status)}</div></div>
+      <div><div class="rf-label">Version</div><div class="rf-value">v${r.version}</div></div>
+      <div><div class="rf-label">Submitted By</div><div class="rf-value">Sarah Hughes</div></div>
+      <div><div class="rf-label">Submitted</div><div class="rf-value">${esc(r.when)}</div></div>
+      <div><div class="rf-label">Services</div><div class="rf-value">${esc(r.services)}</div></div>
+      <div><div class="rf-label">Billable Days</div><div class="rf-value">${d1(c.billable)}</div></div>
+      <div><div class="rf-label">Project Fee</div><div class="rf-value">${gbp(c.projectFee)}</div></div>
+      <div><div class="rf-label">ATDR ARR</div><div class="rf-value">${c.arr?gbp(c.arr):'—'}</div></div>
+      <div><div class="rf-label">Record Locked</div><div class="rf-value">Yes</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Scoping Responses<span class="badge">${r.responses.length} records</span></div>
+    <div class="scroll-x">
+      <table class="rel">
+        <thead><tr><th>Question Key</th><th>Section</th><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="notice info"><span>ℹ️</span><div>Each row is a <code>Scoping_Response__c</code> record. The nine fields
+      above are real fields on <code>Scoping_Document__c</code> — the ones you report on. Everything else stays in the child rows.</div></div>
+  </div>
+
+  <div class="flow-foot" style="margin:0 -14px -14px; border-radius:0">
+    <button class="btn" id="recallBtn" type="button">Recall &amp; edit</button>
+    <button class="btn" id="newVerBtn" type="button">New version</button>
+    <div class="spacer"></div>
+    <span class="note">Next step in the real build: raise the quote from this scope.</span>
+  </div>`;
+}
+
+function doSubmit(){
+  const c = calc(A);
+  const responses = [];
+  for (const s of (A.services||[])){
+    for (const q of Q.filter(x=>x.s===s && qLive(x,A))) responses.push({key:q.k, section:svc(s).nm, label:q.l, value:fmtVal(q,A[q.k])});
+  }
+  for (const q of Q.filter(x=>x.s==='LOG' && qLive(x,A))){
+    if (A[q.k] === undefined || A[q.k] === '' || A[q.k] === false) continue;
+    responses.push({key:q.k, section:'Delivery', label:q.l, value:fmtVal(q,A[q.k])});
+  }
+  submitted = {
+    name: 'SCOPE-' + String(140 + Math.floor(Math.random()*59)).padStart(5,'0'),
+    status: c.approval ? 'Pending Technical Approval' : 'Approved',
+    version: (submitted ? submitted.version + 1 : 1),
+    when: new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    services: (A.services||[]).map(s=>svc(s).nm).join(', '),
+    responses, calc: c
+  };
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderRelated(){
+  const el = document.getElementById('relList');
+  if (!el) return;
+  if (!submitted){
+    el.innerHTML = '<div class="eff-empty">No scoping documents yet. Complete the flow on the Scoping Document tab.</div>';
+    document.getElementById('relCount').textContent = '0 items';
+    return;
+  }
+  const c = submitted.calc;
+  el.innerHTML = `<table class="rel">
+    <thead><tr><th>Scoping Document</th><th>Status</th><th>Services</th><th>Days</th><th>Project Fee</th><th>ARR</th></tr></thead>
+    <tbody><tr>
+      <td class="v">${esc(submitted.name)}</td><td>${esc(submitted.status)}</td>
+      <td>${esc(submitted.services)}</td><td class="v">${d1(c.billable)}</td>
+      <td class="v">${gbp(c.projectFee)}</td><td class="v">${c.arr?gbp(c.arr):'—'}</td>
+    </tr></tbody></table>`;
+  document.getElementById('relCount').textContent = '1 item';
+}
+
+/* ============================================================
+   Events
+   ============================================================ */
+/* keys that some other question's visibility rule depends on — only
+   these force a re-render, so typing in an ordinary field does not
+   rebuild the screen underneath the cursor */
+const GATE_KEYS = new Set();
+for (const q of Q) if (q.visTxt) for (const o of Q) if (q.visTxt.includes(o.k)) GATE_KEYS.add(o.k);
+
+function readField(q, el){
+  if (q.t === 'check') return el.checked;
+  if (q.t === 'number') return el.value === '' ? '' : Number(el.value);
+  return el.value;
+}
+function onField(e){
+  const k = e.target.dataset.k; if (!k) return;
+  const q = qByKey(k); if (!q) return;
+  A[k] = readField(q, e.target);
+  if (GATE_KEYS.has(k)) rerenderScreenKeepFocus();
+  renderEffort(); save();
+}
+document.addEventListener('input', onField);
+document.addEventListener('change', onField);
+
+function rerenderScreenKeepFocus(){
+  if (submitted) return;
+  const act = document.activeElement;
+  const id  = act && act.id, pos = act && act.selectionStart;
+  const idp = STEPS[step].id;
+  document.getElementById('screen').innerHTML =
+    idp === 'services' ? screenServices() : idp === 'tech' ? screenTech() :
+    idp === 'log' ? screenLog() : screenReview();
+  if (id){
+    const n = document.getElementById(id);
+    if (n){ n.focus(); try{ if (pos!=null && n.setSelectionRange) n.setSelectionRange(pos,pos); }catch(e){} }
+  }
+}
+
+document.addEventListener('click', e=>{
+  const card = e.target.closest('[data-svc]');
+  if (card){
+    const id = card.dataset.svc;
+    A.services = A.services || [];
+    A.services = has(id) ? A.services.filter(x=>x!==id) : [...A.services, id];
+    A.services.sort((a,b)=>SERVICES.findIndex(s=>s.id===a)-SERVICES.findIndex(s=>s.id===b));
+    render(); return;
+  }
+  const chip = e.target.closest('[data-multi]');
+  if (chip){
+    const k = chip.dataset.multi, v = chip.dataset.val;
+    const cur = A[k] || [];
+    A[k] = cur.includes(v) ? cur.filter(x=>x!==v) : [...cur, v];
+    rerenderScreenKeepFocus(); renderEffort(); save(); return;
+  }
+  const st = e.target.closest('[data-step]');
+  if (st){ const i = Number(st.dataset.step); if (i <= step || canLeave(step)) { step = i; touched=false; render(); } return; }
+  const tab = e.target.closest('[data-tab]');
+  if (tab){
+    document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on', b===tab));
+    for (const t of ['details','scoping','related'])
+      document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab.dataset.tab);
+    return;
+  }
+  if (e.target.id === 'recallBtn'){ submitted = null; step = STEPS.length-1; render(); return; }
+  if (e.target.id === 'newVerBtn'){ const v = submitted.version; submitted = null; step = 0; A._v = v+1; render(); return; }
+});
+
+document.addEventListener('keydown', e=>{
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const t = e.target.closest('[data-svc],[data-multi]');
+  if (t){ e.preventDefault(); t.click(); }
+});
+
+function canLeave(i){
+  const id = STEPS[i].id;
+  if (id === 'services') return (A.services||[]).length > 0;
+  const liveQ = Q.filter(q=>qLive(q,A) && (id==='tech' ? q.s!=='LOG' : id==='log' ? q.s==='LOG' : true));
+  return !liveQ.some(missing);
+}
+
+document.getElementById('prevBtn').onclick = ()=>{ if (step>0){ step--; touched=false; render(); window.scrollTo({top:0,behavior:'smooth'}); } };
+document.getElementById('nextBtn').onclick = ()=>{
+  touched = true;
+  if (!canLeave(step)){ render(); return; }
+  if (STEPS[step].id === 'review'){ doSubmit(); return; }
+  step++; touched = false; render(); window.scrollTo({top:0,behavior:'smooth'});
+};
+
+document.getElementById('resetBtn').onclick = ()=>{
+  A = defaults(); step = 0; submitted = null; touched = false;
+  try{ localStorage.removeItem(LSK); }catch(e){}
+  render();
+};
+
+/* theme */
+const themeBtn = document.getElementById('themeBtn');
+function applyTheme(t){
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  else document.documentElement.removeAttribute('data-theme');
+  const dark = t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.textContent = dark ? 'Light' : 'Dark';
+}
+themeBtn.onclick = ()=>{
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark'
+    || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+  const next = dark ? 'light' : 'dark';
+  try{ localStorage.setItem(LSK+'-theme', next); }catch(e){}
+  applyTheme(next);
+};
+
+/* ============================================================
+   "How this is built" drawer — rule table generated from the
+   same config the form runs on
+   ============================================================ */
+function drawerHTML(){
+  const ruleRows = Q.map(q=>{
+    const vis = q.s === 'LOG'
+      ? (q.visTxt ? q.visTxt : 'any service selected')
+      : (q.visTxt ? `${q.s} selected AND ${q.visTxt}` : `${q.s} selected`);
+    const type = {number:'Number', pick:'Picklist', multi:'Multi-Select', check:'Checkbox',
+                  date:'Date', text:'Text', area:'Long Text'}[q.t];
+    return `<tr><td class="k">${esc(q.k)}</td><td>${esc(type)}</td><td>${esc(vis)}</td><td>${q.req?'Yes':'—'}</td></tr>`;
+  }).join('');
+
+  return `
+  <h3>What the team is looking at</h3>
+  <p>A clickable mock of the scoping document rebuilt as a Salesforce screen flow embedded on the
+     Opportunity. The branching, the day calculation and the approval threshold are all live — click
+     through it and the numbers move. What is <b>not</b> real: the question set. It is a credible
+     DXR Cyber set written from the service lines, not extracted from the live Zoho Form. That extraction
+     is the next job, and it replaces this config wholesale.</p>
+
+  <h3>Data model</h3>
+  <pre class="model">Opportunity
+ └── Scoping_Document__c          (master-detail)
+      ├─ Service_Lines__c          multi-select
+      ├─ Status__c                 Draft / Submitted / Approved / Superseded
+      ├─ Version__c                number
+      ├─ Billable_Days__c          number      ← stamped by flow
+      ├─ Project_Fee__c            currency    ← stamped by flow
+      ├─ ATDR_ARR__c               currency    ← stamped by flow
+      ├─ Approval_Required__c      formula
+      └── Scoping_Response__c      (master-detail, one per answer)
+           ├─ Question_Key__c      text        ← joins to the metadata below
+           ├─ Section__c           text
+           ├─ Answer_Text__c / Answer_Number__c / Answer_Checkbox__c
+           └─ Sequence__c          number
+
+Scoping_Question__mdt              (the question bank — custom metadata)
+ ├─ Service_Line__c · Question_Key__c · Data_Type__c
+ ├─ Picklist_Values__c · Required__c · Help_Text__c
+ ├─ Visible_If__c                  the rule, as data
+ └─ Effort_Weight__c               feeds the day calculation</pre>
+
+  <h3>Why a child object and not 60 fields on Opportunity</h3>
+  <p>Across eight service lines the full question set runs past 60 questions, and any one deal uses a
+     fraction of them. As Opportunity fields that is a sparse, unreportable mess, and every new service
+     line means a deployment. As child records it stays clean — and the dozen answers that actually drive
+     price or reporting get promoted to real fields on <code>Scoping_Document__c</code>, stamped by the flow.
+     Wide where you report, tall where you capture.</p>
+
+  <h3>Why custom metadata for the questions</h3>
+  <p>DXR Cyber adds service lines. If the questions live inside the flow, every new question is a build,
+     a test cycle and a release. If they live in <code>Scoping_Question__mdt</code>, it is a metadata record
+     a RevOps admin creates in two minutes. This prototype is built that way on purpose — the whole form
+     renders from one config array, which is why the rule table below could be generated from it.</p>
+
+  <h3>Rule table — generated from this prototype's own config</h3>
+  <p>This is the artifact that matters. One row per question, with the condition that makes it appear.
+     It maps one-to-one onto <code>Scoping_Question__mdt</code> rows, and it is reviewable by the people who
+     own the scoping process without them reading a design document.</p>
+  <div class="scroll-x">
+    <table class="rel">
+      <thead><tr><th>Question Key</th><th>Type</th><th>Visible when</th><th>Required</th></tr></thead>
+      <tbody>${ruleRows}</tbody>
+    </table>
+  </div>
+
+  <h3>What still has to come out of Zoho</h3>
+  <p>Three things, and none of them are in the migration extract today:</p>
+  <p>1. <b>The real question set and its rules</b> — from the Zoho Form itself.<br>
+     2. <b>The server-side logic</b> — any Deluge that calculates days or price. The browser never sees it,
+        so it needs an admin export or a look at the builder.<br>
+     3. <b>Historical submissions</b> — every scoping form ever filled in. These live in Zoho Forms, not
+        Zoho CRM, so <code>staging.sqlite</code> does not contain them.</p>
+
+  <h3>Build estimate</h3>
+  <p>Flow-only version, questions hard-coded in the flow: roughly a week, and every change after that is a
+     build. Metadata-driven version with the custom LWC: closer to two and a half weeks, after which the
+     business maintains its own question set. For a consultancy whose service catalogue moves, the second
+     one pays for itself inside two quarters.</p>`;
+}
+
+const drawer = document.getElementById('drawer'), drawerBg = document.getElementById('drawerBg');
+function openDrawer(on){
+  drawer.classList.toggle('on', on); drawerBg.classList.toggle('on', on);
+  drawer.setAttribute('aria-hidden', String(!on));
+  if (on && !drawer.dataset.filled){ document.getElementById('drawerBody').innerHTML = drawerHTML(); drawer.dataset.filled='1'; }
+}
+document.getElementById('buildBtn').onclick = ()=>openDrawer(true);
+document.getElementById('drawerClose').onclick = ()=>openDrawer(false);
+drawerBg.onclick = ()=>openDrawer(false);
+document.addEventListener('keydown', e=>{ if (e.key === 'Escape') openDrawer(false); });
+
+/* ============================================================
+   Init
+   ============================================================ */
+document.getElementById('footerNote').innerHTML =
+  'Prototype built by SaaScend for DXR Cyber · illustrative rates and a placeholder question set · ' +
+  'the live Zoho Form has not yet been extracted. Progress is kept in this browser only — ' +
+  '&ldquo;Reset demo&rdquo; clears it.';
+
+(function init(){
+  let t = null; try{ t = localStorage.getItem(LSK+'-theme'); }catch(e){}
+  applyTheme(t);
+  A = defaults(); load();
+  if (!A.services) A.services = [];
+  render();
+})();
+</script>
+</body>
+</html>
