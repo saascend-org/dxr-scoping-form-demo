@@ -328,7 +328,7 @@ pre.model{
 <body>
 
 <div class="ribbon">
-  <div><b>Prototype</b> &nbsp;·&nbsp; this is a clickable mock of how the DXR Cyber scoping document would behave as a Salesforce screen flow. Not a Salesforce org. Rates are illustrative.</div>
+  <div><b>Prototype</b> &nbsp;·&nbsp; a clickable mock of how the DXR Cyber scoping document would behave as a Salesforce screen flow. Not a Salesforce org. Scoping captures scope only — pricing stays manual.</div>
   <div class="r-actions">
     <button id="themeBtn" type="button">Dark</button>
     <button id="resetBtn" type="button">Reset demo</button>
@@ -367,7 +367,7 @@ pre.model{
 
     <div class="rec-fields">
       <div><div class="rf-label">Account</div><div class="rf-value">Northvale Manufacturing Ltd</div></div>
-      <div><div class="rf-label">Amount</div><div class="rf-value" id="hdrAmount">—</div></div>
+      <div><div class="rf-label">Amount</div><div class="rf-value" id="hdrAmount">Not yet priced</div></div>
       <div><div class="rf-label">Close Date</div><div class="rf-value">28/11/2026</div></div>
       <div><div class="rf-label">Owner</div><div class="rf-value">Sarah Hughes</div></div>
       <div><div class="rf-label">Business Unit</div><div class="rf-value">DXR Cyber</div></div>
@@ -390,12 +390,13 @@ pre.model{
           <div><div class="rf-label">Lead Source</div><div class="rf-value">Existing Customer</div></div>
           <div><div class="rf-label">Primary Contact</div><div class="rf-value">Daniel Reeve, Head of IT</div></div>
           <div><div class="rf-label">Scoping Status</div><div class="rf-value" id="detStatus">Not Started</div></div>
-          <div><div class="rf-label">Scoped Effort (Days)</div><div class="rf-value" id="detDays">—</div></div>
+          <div><div class="rf-label">Answers Captured</div><div class="rf-value" id="detDays">—</div></div>
         </div>
         <div class="notice info">
           <span>ℹ️</span>
-          <div>In the real build these are fields on the Opportunity, stamped by the flow when the scoping
-          document is submitted. The rep never types them — they are derived from the answers.</div>
+          <div>Scoping status and completeness are stamped on the Opportunity by the flow. Amount is not —
+          the team prices the engagement manually once the scope has been technically reviewed, and
+          nothing in this process asserts a number.</div>
         </div>
       </div>
     </div>
@@ -436,7 +437,7 @@ pre.model{
 
       <aside class="panel">
         <div class="card">
-          <div class="card-head"><h2>Effort &amp; Value</h2><div class="sub">live</div></div>
+          <div class="card-head"><h2>Scope Summary</h2><div class="sub">live</div></div>
           <div class="card-body" id="effort"></div>
         </div>
       </aside>
@@ -461,23 +462,8 @@ pre.model{
 /* ============================================================
    Config — illustrative commercial assumptions
    ============================================================ */
-const CFG = {
-  dayRate: 1250,
-  oohUplift: 0.25,
-  travelDay: 0.5,          // days added per onsite visit
-  travelExpense: 350,      // £ per onsite visit
-  approvalDays: 20,        // > this needs Technical Director approval
-  termDiscount: {'12 months':0, '24 months':0.05, '36 months':0.10}
-};
-const gbp = n => '£' + Math.round(n).toLocaleString('en-GB');
-const d1  = n => (Math.round(n*2)/2).toLocaleString('en-GB');
-
-/* tiered lookup: tier(n, [[maxA,valA],[maxB,valB]], fallback) */
-function tier(n, pairs, fallback){
-  n = Number(n)||0;
-  for (const [max,val] of pairs) if (n <= max) return val;
-  return fallback;
-}
+/* No pricing lives here. Scoping captures the scope; the team prices it
+   manually from the summary this produces. */
 
 /* ============================================================
    Services
@@ -502,7 +488,7 @@ const has = id => (A.services||[]).includes(id);
    ============================================================ */
 const Q = [
   /* --- External infrastructure --- */
-  {k:'ext_ips', s:'EXT', l:'Live IP addresses in scope', t:'number', req:true, min:1,
+  {k:'ext_ips', head:true, s:'EXT', l:'Live IP addresses in scope', t:'number', req:true, min:1,
    h:'Externally reachable IPs, not the full CIDR allocation.'},
   {k:'ext_auth', s:'EXT', l:'Authenticated testing of exposed portals required', t:'check'},
   {k:'ext_waf', s:'EXT', l:'WAF or IPS in front of the estate', t:'pick', req:true,
@@ -510,47 +496,47 @@ const Q = [
    h:'No allowlisting means evasion time, which adds a day.'},
 
   /* --- Internal infrastructure --- */
-  {k:'int_hosts', s:'INT', l:'Live hosts and devices in scope', t:'number', req:true, min:1},
-  {k:'int_sites', s:'INT', l:'Physical sites in scope', t:'number', req:true, min:1, d:1},
+  {k:'int_hosts', head:true, s:'INT', l:'Live hosts and devices in scope', t:'number', req:true, min:1},
+  {k:'int_sites', head:true, s:'INT', l:'Physical sites in scope', t:'number', req:true, min:1, d:1},
   {k:'int_domains', s:'INT', l:'Active Directory domains', t:'number', min:0, d:1},
   {k:'int_access', s:'INT', l:'How will we connect?', t:'pick', req:true,
    o:['Onsite consultant','Shipped testing device','Client VPN']},
   {k:'int_seg', s:'INT', l:'Network segregation testing required', t:'check'},
 
   /* --- Web application --- */
-  {k:'web_apps', s:'WEB', l:'Number of applications', t:'number', req:true, min:1, d:1},
-  {k:'web_pages', s:'WEB', l:'Dynamic pages or functions (all apps)', t:'number', req:true, min:1,
+  {k:'web_apps', head:true, s:'WEB', l:'Number of applications', t:'number', req:true, min:1, d:1},
+  {k:'web_pages', head:true, s:'WEB', l:'Dynamic pages or functions (all apps)', t:'number', req:true, min:1,
    h:'Count distinct functions, not static content pages.'},
   {k:'web_roles', s:'WEB', l:'Distinct user roles to test', t:'number', req:true, min:1, d:1},
   {k:'web_auth', s:'WEB', l:'Authenticated testing required', t:'check', d:true},
   {k:'web_api',  s:'WEB', l:'API endpoints in scope', t:'check'},
-  {k:'web_api_count', s:'WEB', l:'Number of API endpoints', t:'number', req:true, min:1,
+  {k:'web_api_count', head:true, s:'WEB', l:'Number of API endpoints', t:'number', req:true, min:1,
    vis:a=>!!a.web_api, visTxt:'web_api = true'},
   {k:'web_cms', s:'WEB', l:'Standard off-the-shelf CMS (WordPress, Drupal…)', t:'check',
    h:'Known attack surface — reduces effort.'},
 
   /* --- Mobile --- */
-  {k:'mob_platforms', s:'MOB', l:'Platforms', t:'multi', req:true, o:['iOS','Android']},
+  {k:'mob_platforms', head:true, s:'MOB', l:'Platforms', t:'multi', req:true, o:['iOS','Android']},
   {k:'mob_src', s:'MOB', l:'Source code available for review', t:'check'},
   {k:'mob_api', s:'MOB', l:'Backing API in scope', t:'check'},
 
   /* --- Cloud --- */
-  {k:'cld_providers', s:'CLD', l:'Providers', t:'multi', req:true, o:['AWS','Azure','GCP','Microsoft 365']},
-  {k:'cld_subs', s:'CLD', l:'Subscriptions, accounts or tenants', t:'number', req:true, min:1, d:1},
+  {k:'cld_providers', head:true, s:'CLD', l:'Providers', t:'multi', req:true, o:['AWS','Azure','GCP','Microsoft 365']},
+  {k:'cld_subs', head:true, s:'CLD', l:'Subscriptions, accounts or tenants', t:'number', req:true, min:1, d:1},
   {k:'cld_cis', s:'CLD', l:'Full CIS benchmark review required', t:'check'},
 
   /* --- Social engineering --- */
   {k:'soc_types', s:'SOC', l:'Engagement types', t:'multi', req:true,
    o:['Phishing','Vishing','Physical intrusion','Pretext calling']},
-  {k:'soc_targets', s:'SOC', l:'Number of targets', t:'number', req:true, min:1},
+  {k:'soc_targets', head:true, s:'SOC', l:'Number of targets', t:'number', req:true, min:1},
   {k:'soc_bespoke', s:'SOC', l:'Bespoke pretext or cloned landing page required', t:'check'},
 
   /* --- Compliance --- */
-  {k:'cmp_framework', s:'CMP', l:'Framework', t:'pick', req:true,
+  {k:'cmp_framework', head:true, s:'CMP', l:'Framework', t:'pick', req:true,
    o:['Cyber Essentials','Cyber Essentials Plus','ISO 27001','PCI DSS','NHS DSPT','ITHC / PSN']},
-  {k:'cmp_devices', s:'CMP', l:'Sample devices for assessment', t:'number', req:true, min:1,
+  {k:'cmp_devices', head:true, s:'CMP', l:'Sample devices for assessment', t:'number', req:true, min:1,
    vis:a=>a.cmp_framework==='Cyber Essentials Plus', visTxt:"cmp_framework = 'Cyber Essentials Plus'"},
-  {k:'cmp_employees', s:'CMP', l:'Employees in scope', t:'number', req:true, min:1,
+  {k:'cmp_employees', head:true, s:'CMP', l:'Employees in scope', t:'number', req:true, min:1,
    vis:a=>['ISO 27001','NHS DSPT'].includes(a.cmp_framework), visTxt:"cmp_framework IN ('ISO 27001','NHS DSPT')"},
   {k:'cmp_isms', s:'CMP', l:'Existing ISMS maturity', t:'pick', req:true,
    o:['None','Partial — some policies exist','Documented — needs audit only'],
@@ -562,12 +548,12 @@ const Q = [
    o:['Gap analysis only','Gap analysis + remediation support','Full certification support']},
 
   /* --- ATDR --- */
-  {k:'atdr_endpoints', s:'ATDR', l:'Endpoints under management', t:'number', req:true, min:1},
-  {k:'atdr_users', s:'ATDR', l:'Users', t:'number', req:true, min:1},
+  {k:'atdr_endpoints', head:true, s:'ATDR', l:'Endpoints under management', t:'number', req:true, min:1},
+  {k:'atdr_users', head:true, s:'ATDR', l:'Users', t:'number', req:true, min:1},
   {k:'atdr_cloud', s:'ATDR', l:'Microsoft 365 / Entra ID log sources included', t:'check', d:true},
   {k:'atdr_sources', s:'ATDR', l:'Additional log sources (firewall, servers, SaaS)', t:'number', min:0, d:0},
-  {k:'atdr_hours', s:'ATDR', l:'Coverage', t:'pick', req:true, o:['24/7/365','Business hours'], d:'24/7/365'},
-  {k:'atdr_term', s:'ATDR', l:'Contract term', t:'pick', req:true, o:['12 months','24 months','36 months'], d:'12 months'},
+  {k:'atdr_hours', head:true, s:'ATDR', l:'Coverage', t:'pick', req:true, o:['24/7/365','Business hours'], d:'24/7/365'},
+  {k:'atdr_term', head:true, s:'ATDR', l:'Contract term', t:'pick', req:true, o:['12 months','24 months','36 months'], d:'12 months'},
 
   /* --- Delivery & constraints (always on once a service is chosen) --- */
   {k:'log_mode', s:'LOG', l:'Delivery', t:'pick', req:true, o:['Fully remote','Onsite','Hybrid'], d:'Fully remote'},
@@ -597,113 +583,37 @@ function qLive(q, a){
 }
 
 /* ============================================================
-   Effort model — days per service
+   Scope summary — completeness, not calculation
    ============================================================ */
-const EFFORT = {
-  EXT: a => {
-    let d = tier(a.ext_ips, [[16,2],[64,3],[256,5],[1024,8]], 12);
-    if (a.ext_auth) d += 1;
-    if (a.ext_waf === 'Yes — no allowlisting') d += 1;
-    return d;
-  },
-  INT: a => {
-    let d = tier(a.int_hosts, [[50,3],[250,5],[1000,8],[5000,12]], 16);
-    d += Math.max(0,(Number(a.int_sites)||1)-1);
-    d += Math.max(0,(Number(a.int_domains)||1)-1);
-    if (a.int_seg) d += 2;
-    return d;
-  },
-  WEB: a => {
-    let d = tier(a.web_pages, [[10,2],[30,4],[75,7],[150,10]], 14);
-    d += Math.max(0,(Number(a.web_apps)||1)-1) * 1.5;
-    d += Math.max(0,(Number(a.web_roles)||1)-1) * 0.5;
-    if (a.web_auth) d += 1;
-    if (a.web_api) d += tier(a.web_api_count, [[10,1],[30,2],[60,3]], 5);
-    if (a.web_cms) d -= 1;
-    return Math.max(1, d);
-  },
-  MOB: a => {
-    let d = ((a.mob_platforms||[]).length || 0) * 2;
-    if (a.mob_src) d += 2;
-    if (a.mob_api) d += 2;
-    return Math.max(1, d);
-  },
-  CLD: a => {
-    let d = ((a.cld_providers||[]).length || 0) * 1.5;
-    d += Math.max(0,(Number(a.cld_subs)||1)-1) * 0.5;
-    if (a.cld_cis) d += 2;
-    return Math.max(1, d);
-  },
-  SOC: a => {
-    let d = ((a.soc_types||[]).length || 0) * 1;
-    d += tier(a.soc_targets, [[50,1],[250,2],[1000,3]], 4);
-    if (a.soc_bespoke) d += 1;
-    return Math.max(1, d);
-  },
-  CMP: a => {
-    let base = 2;
-    switch (a.cmp_framework) {
-      case 'Cyber Essentials': base = 1; break;
-      case 'Cyber Essentials Plus': base = 2 + tier(a.cmp_devices, [[5,0],[15,1],[40,2]], 4); break;
-      case 'ISO 27001':
-        base = tier(a.cmp_employees, [[50,6],[250,10],[1000,16]], 22);
-        if (a.cmp_isms === 'None') base += 4;
-        if (a.cmp_isms === 'Documented — needs audit only') base -= 3;
-        break;
-      case 'PCI DSS': base = {'Level 1':12,'Level 2':8,'Level 3':5,'Level 4':3}[a.cmp_level] || 5; break;
-      case 'NHS DSPT': base = tier(a.cmp_employees, [[250,4],[1000,7]], 10); break;
-      case 'ITHC / PSN': base = 5; break;
-    }
-    const mult = {'Gap analysis only':1,'Gap analysis + remediation support':1.5,'Full certification support':2}[a.cmp_support] || 1;
-    return Math.max(1, base * mult);
-  }
-};
-
-function atdrMonthly(a){
-  let m = (Number(a.atdr_endpoints)||0) * 8
-        + (Number(a.atdr_users)||0) * 3
-        + (Number(a.atdr_sources)||0) * 45;
-  if (a.atdr_cloud) m += 150;
-  if (a.atdr_hours === 'Business hours') m *= 0.6;
-  m *= (1 - (CFG.termDiscount[a.atdr_term] || 0));
-  return m;
+function blank(q, v){
+  if (q.t === 'check') return false;               // an unticked box is an answer
+  if (q.t === 'multi') return !(v && v.length);
+  return v === undefined || v === null || v === '';
 }
-
-/* ============================================================
-   Calculation
-   ============================================================ */
 function serviceReady(s, a){
   return !Q.filter(q=>q.s===s && qLive(q,a)).some(missing);
 }
-function calc(a){
-  const lines = [];
-  let days = 0;
-  for (const s of (a.services||[])) {
-    if (s === 'ATDR') continue;
-    if (!serviceReady(s, a)){ lines.push({id:s, nm:svc(s).nm, days:0, pending:true}); continue; }
-    const d = EFFORT[s] ? EFFORT[s](a) : 0;
-    lines.push({id:s, nm:svc(s).nm, days:d});
-    days += d;
-  }
-  const visits    = (a.log_mode === 'Onsite' || a.log_mode === 'Hybrid') ? (Number(a.log_visits)||0) : 0;
-  const travelDays= visits * CFG.travelDay;
-  const retest    = a.log_retest === 'One retest included' ? 1
-                  : a.log_retest === 'Unlimited retest — 30 days' ? 2 : 0;
+function summarise(a){
+  const sel  = a.services || [];
+  const live = Q.filter(q=>qLive(q,a));
 
-  const billable  = days + travelDays + retest;
-  const oohPct    = a.log_ooh ? (Number(a.log_ooh_pct)||0)/100 : 0;
-  const baseFee   = billable * CFG.dayRate;
-  const oohFee    = baseFee * oohPct * CFG.oohUplift;
-  const expenses  = visits * CFG.travelExpense;
-  const projectFee= baseFee + oohFee + expenses;
+  const sections = sel.map(id=>({
+    id, nm: svc(id).nm,
+    outstanding: Q.filter(q=>q.s===id && qLive(q,a) && missing(q)).length
+  }));
+  const logLive = sel.length ? Q.filter(q=>q.s==='LOG' && qLive(q,a)) : [];
+  const logOut  = logLive.filter(missing).length;
 
-  const atdrReady = has('ATDR') && serviceReady('ATDR', a);
-  const monthly   = atdrReady ? atdrMonthly(a) : 0;
-  const arr       = monthly * 12;
+  const heads = Q.filter(q=>q.head && qLive(q,a) && !blank(q, a[q.k]))
+                 .map(q=>({l:q.l, v:fmtVal(q, a[q.k])}));
 
-  return {lines, days, travelDays, retest, billable, visits, oohPct, baseFee, oohFee, expenses,
-          projectFee, monthly, arr, total: projectFee + arr, atdrPending: has('ATDR') && !atdrReady,
-          pending: lines.some(l=>l.pending), approval: billable > CFG.approvalDays};
+  return {
+    services: sel, sections, logLive, logOut, heads,
+    answered: live.filter(q=>!blank(q, a[q.k])).length,
+    total: live.length,
+    outstanding: live.filter(missing).length,
+    ready: sel.length > 0 && !live.some(missing)
+  };
 }
 
 /* ============================================================
@@ -720,13 +630,23 @@ let step = 0;
 let submitted = null;  // submitted record snapshot
 let touched = false;   // show validation errors only after a Next attempt
 
-const LSK = 'dxr-scoping-demo-v1';
+const LSK = 'dxr-scoping-demo-v2';
 function save(){ try{ localStorage.setItem(LSK, JSON.stringify({A, step, submitted})); }catch(e){} }
 function load(){
+  /* Restored state is untrusted: it may have been written by an older build
+     whose shape no longer matches. Validate it, and fall back to a clean
+     start rather than rendering a broken record. */
   try{
     const r = JSON.parse(localStorage.getItem(LSK) || 'null');
-    if (r && r.A) { A = r.A; step = r.step || 0; submitted = r.submitted || null; }
-  }catch(e){}
+    if (!r || typeof r.A !== 'object' || r.A === null) return;
+    const sub = r.submitted;
+    if (sub && !(sub.summary && Array.isArray(sub.responses))) return;
+    A = r.A;
+    step = Number.isInteger(r.step) && r.step >= 0 && r.step < STEPS.length ? r.step : 0;
+    submitted = sub || null;
+  }catch(e){
+    A = defaults(); step = 0; submitted = null;
+  }
 }
 function defaults(){
   const a = {services:[]};
@@ -833,7 +753,7 @@ function screenLog(){
 }
 
 function screenReview(){
-  const c = calc(A);
+  const r = summarise(A);
   const rows = [];
   for (const s of (A.services||[])){
     for (const q of Q.filter(x=>x.s===s && qLive(x,A))){
@@ -857,9 +777,9 @@ function screenReview(){
         <tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="v">${esc(r[2])}</td></tr>`).join('')}</tbody>
       </table>
     </div>
-    ${c.approval ? `<div class="notice warn" style="margin-top:12px"><span>⚠️</span><div>
-      <b>${d1(c.billable)} days exceeds the ${CFG.approvalDays}-day threshold.</b>
-      Submitting will route this to the Technical Director for approval before a quote can be raised.</div></div>` : ''}
+    <div class="notice info" style="margin-top:12px"><span>ℹ️</span><div>Submitting locks the document
+      and raises it for technical review. No price is attached and none is calculated — the team prices
+      it from this scope once the numbers have been verified.</div></div>
   </div>`;
 }
 
@@ -871,56 +791,49 @@ function fmtVal(q, v){
 }
 
 /* ============================================================
-   Effort panel
+   Scope summary panel
    ============================================================ */
 function renderEffort(){
   const el = document.getElementById('effort');
-  const c = calc(A);
-  if (!(A.services||[]).length){
-    el.innerHTML = `<div class="eff-empty">Pick the services in scope and the day count, project fee
-      and recurring value build here as you answer — in front of the client, on the call.</div>`;
-    document.getElementById('hdrAmount').textContent = '—';
+  const r  = summarise(A);
+
+  if (!r.services.length){
+    el.innerHTML = `<div class="eff-empty">Pick the services in scope and this builds a running
+      summary of what has been captured and what is still outstanding — the handover note
+      the pricing team receives.</div>`;
     document.getElementById('detDays').textContent = '—';
     return;
   }
+
   let h = '';
-  for (const l of c.lines) h += `<div class="eff-row"><span>${esc(l.nm)}</span><span class="v" ${l.pending?'style="font-weight:400;color:var(--text-weaker)"':''}>${l.pending?'awaiting input':d1(l.days)+' d'}</span></div>`;
-  if (c.travelDays) h += `<div class="eff-row sub"><span>Travel (${c.visits} visit${c.visits===1?'':'s'})</span><span class="v">${d1(c.travelDays)} d</span></div>`;
-  if (c.retest)     h += `<div class="eff-row sub"><span>Retest</span><span class="v">${d1(c.retest)} d</span></div>`;
+  for (const sec of r.sections){
+    h += `<div class="eff-row"><span>${esc(sec.nm)}</span><span class="v" ${sec.outstanding?'style="color:var(--warn);font-weight:600"':'style="color:var(--success)"'}>${
+      sec.outstanding ? sec.outstanding + ' open' : 'complete'}</span></div>`;
+  }
+  if (r.logLive.length){
+    h += `<div class="eff-row"><span>Delivery &amp; Constraints</span><span class="v" ${r.logOut?'style="color:var(--warn);font-weight:600"':'style="color:var(--success)"'}>${
+      r.logOut ? r.logOut + ' open' : 'complete'}</span></div>`;
+  }
 
-  if (c.lines.length || c.travelDays || c.retest){
-    h += `<div class="eff-sep"></div>
-      <div class="eff-row"><span><b>Billable days</b></span><span class="v">${d1(c.billable)} d</span></div>
-      <div class="eff-row sub"><span>Fees @ ${gbp(CFG.dayRate)}/day</span><span class="v">${gbp(c.baseFee)}</span></div>`;
-    if (c.oohFee)   h += `<div class="eff-row sub"><span>Out of hours (${Math.round(c.oohPct*100)}% @ +${CFG.oohUplift*100}%)</span><span class="v">${gbp(c.oohFee)}</span></div>`;
-    if (c.expenses) h += `<div class="eff-row sub"><span>Travel expenses</span><span class="v">${gbp(c.expenses)}</span></div>`;
-    h += `<div class="eff-sep"></div>
-      <div class="eff-total"><span class="l">Project fee</span><span class="n">${gbp(c.projectFee)}</span></div>`;
-  }
-  if (c.atdrPending){
-    h += `<div class="eff-sep"></div>
-      <div class="eff-row"><span>ATDR</span><span class="v" style="font-weight:400;color:var(--text-weaker)">awaiting input</span></div>`;
-  }
-  if (c.monthly){
-    h += `<div class="eff-sep"></div>
-      <div class="eff-row"><span>ATDR monthly</span><span class="v">${gbp(c.monthly)}</span></div>
-      <div class="eff-total"><span class="l">ATDR ARR</span><span class="n">${gbp(c.arr)}</span></div>`;
-  }
   h += `<div class="eff-sep"></div>
-    <div class="eff-total"><span class="l">Opportunity amount</span><span class="n">${gbp(c.total)}</span></div>`;
+    <div class="eff-row"><span>Answers captured</span><span class="v">${r.answered} of ${r.total}</span></div>`;
 
-  h += (c.pending || c.atdrPending)
-     ? `<div class="notice info"><span>⋯</span><div>Finish the technical questions and the day count, fee and approval verdict resolve here.</div></div>`
-     : c.approval
-     ? `<div class="notice warn"><span>⚠️</span><div>Over ${CFG.approvalDays} days — Technical Director approval required on submit.</div></div>`
-     : `<div class="notice ok"><span>✓</span><div>Within the self-serve approval threshold.</div></div>`;
+  if (r.heads.length){
+    h += `<div class="eff-sep"></div>
+      <div class="eff-row" style="color:var(--text-weaker);font-size:11px;text-transform:uppercase;letter-spacing:.4px"><span>Key figures</span><span></span></div>`;
+    for (const x of r.heads)
+      h += `<div class="eff-row sub"><span>${esc(x.l)}</span><span class="v">${esc(x.v)}</span></div>`;
+  }
 
-  h += `<div class="notice info"><span>ℹ️</span><div>Day rate, out-of-hours uplift and the approval
-     threshold are illustrative. In the build they live in custom metadata, so Finance changes them without a deployment.</div></div>`;
+  h += r.ready
+     ? `<div class="notice ok"><span>✓</span><div>Scope complete. Submitting sends it for technical review — pricing is set by the team afterwards.</div></div>`
+     : `<div class="notice warn"><span>⚠️</span><div>${r.outstanding} required ${r.outstanding===1?'answer':'answers'} still outstanding.</div></div>`;
+
+  h += `<div class="notice info"><span>ℹ️</span><div>No prices are calculated here, by design. Scoping
+     captures <i>what</i> is being tested; the team prices it from this summary.</div></div>`;
 
   el.innerHTML = h;
-  document.getElementById('hdrAmount').textContent = gbp(c.total);
-  document.getElementById('detDays').textContent = d1(c.billable) + ' days';
+  document.getElementById('detDays').textContent = r.answered + ' of ' + r.total;
 }
 
 /* ============================================================
@@ -962,26 +875,25 @@ function render(){
    Submitted record
    ============================================================ */
 function submittedHTML(){
-  const r = submitted, c = r.calc;
+  const r = submitted, c = r.summary;
   const rows = r.responses.map(x=>`<tr>
     <td class="k">${esc(x.key)}</td><td>${esc(x.section)}</td><td>${esc(x.label)}</td><td class="v">${esc(x.value)}</td>
   </tr>`).join('');
   return `
   <div class="sec">
     <div class="sec-title">Scoping Document<span class="badge">${esc(r.name)}</span></div>
-    ${c.approval
-      ? `<div class="notice warn"><span>🔒</span><div><b>Submitted and locked — pending Technical Director approval.</b>
-         ${d1(c.billable)} days is over the ${CFG.approvalDays}-day threshold. The rep can no longer edit it; the approver can recall it.</div></div>`
-      : `<div class="notice ok"><span>✓</span><div><b>Submitted and locked.</b> Approved automatically — under the ${CFG.approvalDays}-day threshold. A quote can now be raised from this scope.</div></div>`}
+    <div class="notice warn"><span>🔒</span><div><b>Submitted and locked — pending technical review.</b>
+       The rep can no longer edit it. Once an engineer has verified the figures, it goes to the team
+       for pricing.</div></div>
     <div class="kv" style="margin-top:14px">
       <div><div class="rf-label">Status</div><div class="rf-value">${esc(r.status)}</div></div>
       <div><div class="rf-label">Version</div><div class="rf-value">v${r.version}</div></div>
       <div><div class="rf-label">Submitted By</div><div class="rf-value">Sarah Hughes</div></div>
       <div><div class="rf-label">Submitted</div><div class="rf-value">${esc(r.when)}</div></div>
       <div><div class="rf-label">Services</div><div class="rf-value">${esc(r.services)}</div></div>
-      <div><div class="rf-label">Billable Days</div><div class="rf-value">${d1(c.billable)}</div></div>
-      <div><div class="rf-label">Project Fee</div><div class="rf-value">${gbp(c.projectFee)}</div></div>
-      <div><div class="rf-label">ATDR ARR</div><div class="rf-value">${c.arr?gbp(c.arr):'—'}</div></div>
+      <div><div class="rf-label">Answers Captured</div><div class="rf-value">${c.answered} of ${c.total}</div></div>
+      <div><div class="rf-label">Verified By</div><div class="rf-value">Awaiting engineer</div></div>
+      <div><div class="rf-label">Priced</div><div class="rf-value">Not yet — manual</div></div>
       <div><div class="rf-label">Record Locked</div><div class="rf-value">Yes</div></div>
     </div>
   </div>
@@ -1007,7 +919,7 @@ function submittedHTML(){
 }
 
 function doSubmit(){
-  const c = calc(A);
+  const r = summarise(A);
   const responses = [];
   for (const s of (A.services||[])){
     for (const q of Q.filter(x=>x.s===s && qLive(x,A))) responses.push({key:q.k, section:svc(s).nm, label:q.l, value:fmtVal(q,A[q.k])});
@@ -1018,11 +930,11 @@ function doSubmit(){
   }
   submitted = {
     name: 'SCOPE-' + String(140 + Math.floor(Math.random()*59)).padStart(5,'0'),
-    status: c.approval ? 'Pending Technical Approval' : 'Approved',
+    status: 'Pending Technical Review',
     version: (submitted ? submitted.version + 1 : 1),
     when: new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),
     services: (A.services||[]).map(s=>svc(s).nm).join(', '),
-    responses, calc: c
+    responses, summary: r
   };
   render();
   window.scrollTo({top:0, behavior:'smooth'});
@@ -1036,13 +948,13 @@ function renderRelated(){
     document.getElementById('relCount').textContent = '0 items';
     return;
   }
-  const c = submitted.calc;
+  const c = submitted.summary;
   el.innerHTML = `<table class="rel">
-    <thead><tr><th>Scoping Document</th><th>Status</th><th>Services</th><th>Days</th><th>Project Fee</th><th>ARR</th></tr></thead>
+    <thead><tr><th>Scoping Document</th><th>Status</th><th>Services</th><th>Answers</th><th>Priced</th></tr></thead>
     <tbody><tr>
       <td class="v">${esc(submitted.name)}</td><td>${esc(submitted.status)}</td>
-      <td>${esc(submitted.services)}</td><td class="v">${d1(c.billable)}</td>
-      <td class="v">${gbp(c.projectFee)}</td><td class="v">${c.arr?gbp(c.arr):'—'}</td>
+      <td>${esc(submitted.services)}</td><td class="v">${c.answered} of ${c.total}</td>
+      <td>Not yet — manual</td>
     </tr></tbody></table>`;
   document.getElementById('relCount').textContent = '1 item';
 }
@@ -1174,10 +1086,13 @@ function drawerHTML(){
   return `
   <h3>What the team is looking at</h3>
   <p>A clickable mock of the scoping document rebuilt as a Salesforce screen flow embedded on the
-     Opportunity. The branching, the day calculation and the approval threshold are all live — click
-     through it and the numbers move. What is <b>not</b> real: the question set. It is a credible
-     DXR Cyber set written from the service lines, not extracted from the live Zoho Form. That extraction
-     is the next job, and it replaces this config wholesale.</p>
+     Opportunity. The branching and the completeness tracking are live — click through it and the
+     summary moves. What is <b>not</b> real: the question set. It is a credible DXR Cyber set written
+     from the service lines, not extracted from the live Zoho Form. That extraction is the next job,
+     and it replaces this config wholesale.</p>
+  <p><b>Scoping does not price anything.</b> It captures what is being tested, confirms nothing has
+     been missed, and hands the team a clean, structured summary. Pricing stays manual and stays
+     separate — so no estimate ever leaves the building because a form did arithmetic.</p>
 
   <h3>Data model</h3>
   <pre class="model">Opportunity
@@ -1185,10 +1100,10 @@ function drawerHTML(){
       ├─ Service_Lines__c          multi-select
       ├─ Status__c                 Draft / Submitted / Approved / Superseded
       ├─ Version__c                number
-      ├─ Billable_Days__c          number      ← stamped by flow
-      ├─ Project_Fee__c            currency    ← stamped by flow
-      ├─ ATDR_ARR__c               currency    ← stamped by flow
-      ├─ Approval_Required__c      formula
+      ├─ Answers_Captured__c       number      ← stamped by flow
+      ├─ Scope_Complete__c         formula     ← nothing outstanding
+      ├─ Verified_By__c            lookup(User)
+      ├─ Verified_Date__c          date
       └── Scoping_Response__c      (master-detail, one per answer)
            ├─ Question_Key__c      text        ← joins to the metadata below
            ├─ Section__c           text
@@ -1199,14 +1114,18 @@ Scoping_Question__mdt              (the question bank — custom metadata)
  ├─ Service_Line__c · Question_Key__c · Data_Type__c
  ├─ Picklist_Values__c · Required__c · Help_Text__c
  ├─ Visible_If__c                  the rule, as data
- └─ Effort_Weight__c               feeds the day calculation</pre>
+ └─ Headline__c                    surfaces on the summary the team prices from</pre>
 
   <h3>Why a child object and not 60 fields on Opportunity</h3>
   <p>Across eight service lines the full question set runs past 60 questions, and any one deal uses a
      fraction of them. As Opportunity fields that is a sparse, unreportable mess, and every new service
-     line means a deployment. As child records it stays clean — and the dozen answers that actually drive
-     price or reporting get promoted to real fields on <code>Scoping_Document__c</code>, stamped by the flow.
+     line means a deployment. As child records it stays clean — and the fifteen or so answers worth
+     reporting and resourcing on get promoted to real fields on <code>Scoping_Document__c</code>.
      Wide where you report, tall where you capture.</p>
+  <p>Which ones get promoted changed when pricing came out of scope. It is no longer &ldquo;whatever drives
+     the fee&rdquo; — it is the volumetrics the team compares deals by and plans capacity from: IP counts,
+     application counts, endpoint counts, framework, delivery mode, dates. Those are the
+     <code>Headline__c</code> questions, and they are what the summary panel shows.</p>
 
   <h3>Why custom metadata for the questions</h3>
   <p>DXR Cyber adds service lines. If the questions live inside the flow, every new question is a build,
@@ -1233,11 +1152,17 @@ Scoping_Question__mdt              (the question bank — custom metadata)
      3. <b>Historical submissions</b> — every scoping form ever filled in. These live in Zoho Forms, not
         Zoho CRM, so <code>staging.sqlite</code> does not contain them.</p>
 
+  <h3>What submitting actually does</h3>
+  <p>Locks the document, raises it for technical review, and notifies the owner. An engineer verifies the
+     figures the client or rep supplied — a stated &ldquo;45 dynamic pages&rdquo; that turns out to be 200 is the
+     expensive failure this step exists to catch. Once verified, the team prices it by hand from the
+     summary. The scoping record is the input to that conversation, not a substitute for it.</p>
+
   <h3>Build estimate</h3>
-  <p>Flow-only version, questions hard-coded in the flow: roughly a week, and every change after that is a
-     build. Metadata-driven version with the custom LWC: closer to two and a half weeks, after which the
-     business maintains its own question set. For a consultancy whose service catalogue moves, the second
-     one pays for itself inside two quarters.</p>`;
+  <p>Internal, rep-facing, questions hard-coded in the flow: roughly a week, and every change after that is
+     a build. Metadata-driven with the custom LWC: closer to two weeks, after which the business maintains
+     its own question set. Adding a prospect-facing Experience Cloud surface later is additive rather than
+     a rewrite — provided the questions were never hard-coded. That one decision is what keeps the door open.</p>`;
 }
 
 const drawer = document.getElementById('drawer'), drawerBg = document.getElementById('drawerBg');
@@ -1255,9 +1180,9 @@ document.addEventListener('keydown', e=>{ if (e.key === 'Escape') openDrawer(fal
    Init
    ============================================================ */
 document.getElementById('footerNote').innerHTML =
-  'Prototype built by SaaScend for DXR Cyber · illustrative rates and a placeholder question set · ' +
-  'the live Zoho Form has not yet been extracted. Progress is kept in this browser only — ' +
-  '&ldquo;Reset demo&rdquo; clears it.';
+  'Prototype built by SaaScend for DXR Cyber · placeholder question set, the live Zoho Form has not ' +
+  'yet been extracted · no pricing is calculated anywhere in this process, by design. Progress is kept ' +
+  'in this browser only — &ldquo;Reset demo&rdquo; clears it.';
 
 (function init(){
   let t = null; try{ t = localStorage.getItem(LSK+'-theme'); }catch(e){}
